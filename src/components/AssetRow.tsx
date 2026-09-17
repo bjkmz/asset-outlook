@@ -3,12 +3,17 @@ import { mockNews, mockPreview } from '../mocks/market'
 import type { Asset } from '../types'
 import { NewsCard } from './NewsCard'
 import { PriceChart } from './PriceChart'
+import { StarButton } from './StarButton'
 
 export function AssetRow({
   asset,
+  tracked,
+  onAdd,
   onRemove,
 }: {
   asset: Asset
+  tracked: boolean
+  onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
 }) {
   const preview = mockPreview(asset.symbol)
@@ -24,15 +29,15 @@ export function AssetRow({
         >
           {asset.name} ({asset.symbol})
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">${last.toFixed(2)}</span>
-          <button
-            type="button"
-            onClick={() => onRemove(asset.symbol)}
-            className="rounded-full border border-coffee-dark/50 px-2 py-0.5 text-xs hover:bg-beige-light"
-          >
-            Remove
-          </button>
+          <StarButton
+            tracked={tracked}
+            label={asset.symbol}
+            onToggle={() =>
+              tracked ? onRemove(asset.symbol) : onAdd(asset.symbol)
+            }
+          />
         </div>
       </div>
       <div className="mt-3 grid gap-4 md:grid-cols-[280px_1fr]">
