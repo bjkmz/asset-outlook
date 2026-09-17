@@ -11,8 +11,7 @@ export function UnavailableModal({
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
         <h2 className="text-base font-bold">Asset unavailable</h2>
         <p className="mt-2 text-sm text-stone-600">
-          No Yahoo market data found for “{symbol}”. The symbol was not added
-          to interests.
+          No Yahoo market data found for “{symbol}”
         </p>
         <button
           type="button"

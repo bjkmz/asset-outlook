@@ -21,7 +21,7 @@ export function AssetRow({
   const last = preview[preview.length - 1]?.price ?? 0
 
   return (
-    <section className="rounded-2xl border border-coffee-dark/40 bg-white p-4 shadow-sm">
+    <section className="bg-white px-1 py-6">
       <div className="flex items-center justify-between">
         <Link
           to={`/asset/${asset.symbol}`}

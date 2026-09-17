@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
+import { DateTimeLine } from '../components/DateTimeLine'
 import { PriceChart } from '../components/PriceChart'
 import { StarButton } from '../components/StarButton'
+import { TitleSpace } from '../components/TitleSpace'
 import { MOCK_ASSETS, mockNews, mockPrices } from '../mocks/market'
 import type { RangeKey } from '../types'
 
@@ -11,10 +13,12 @@ export function AssetView({
   symbols,
   onAdd,
   onRemove,
+  onMissing,
 }: {
   symbols: string[]
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
+  onMissing: (symbol: string) => void
 }) {
   const { symbol = '' } = useParams()
   const [range, setRange] = useState<RangeKey>('1d')
@@ -29,22 +33,31 @@ export function AssetView({
   }
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border border-coffee-dark/40 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl font-bold">
-            {asset.name} ({asset.symbol})
-          </h1>
-          <StarButton
-            tracked={symbols.includes(asset.symbol)}
-            label={asset.symbol}
-            onToggle={() =>
-              symbols.includes(asset.symbol)
-                ? onRemove(asset.symbol)
-                : onAdd(asset.symbol)
-            }
-          />
-        </div>
+    <div>
+      <TitleSpace
+        title={
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">
+              {asset.name} ({asset.symbol})
+            </h1>
+            <StarButton
+              tracked={symbols.includes(asset.symbol)}
+              label={asset.symbol}
+              onToggle={() =>
+                symbols.includes(asset.symbol)
+                  ? onRemove(asset.symbol)
+                  : onAdd(asset.symbol)
+              }
+            />
+          </div>
+        }
+        symbols={symbols}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        onMissing={onMissing}
+      />
+      <main className="space-y-4 p-4 md:p-6">
+      <section className="bg-white py-2">
         <div className="mt-2">
           <PriceChart data={prices} height={280} />
         </div>
@@ -66,7 +79,8 @@ export function AssetView({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-coffee-dark/40 bg-white p-4 shadow-sm">
+      <DateTimeLine />
+      <section className="bg-white py-2">
         <h2 className="text-lg font-bold">NEWS</h2>
         <div className="mt-3 space-y-3">
           {news.map((a) => (
@@ -75,7 +89,7 @@ export function AssetView({
               href={a.url}
               target="_blank"
               rel="noreferrer"
-              className="flex gap-3 rounded-xl border border-coffee-dark/30 p-3 hover:shadow-md"
+              className="flex gap-3 py-3 hover:bg-beige-light/50"
             >
               <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-beige text-xs text-stone-500">
                 Cover
@@ -90,6 +104,7 @@ export function AssetView({
           ))}
         </div>
       </section>
+      </main>
     </div>
   )
 }

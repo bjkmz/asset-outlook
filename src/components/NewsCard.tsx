@@ -11,7 +11,7 @@ export function NewsCard({ article }: { article: NewsArticle }) {
       href={article.url}
       target="_blank"
       rel="noreferrer"
-      className="block overflow-hidden rounded-xl border border-coffee-dark/40 bg-white shadow-sm transition hover:shadow-md"
+      className="block bg-white transition hover:bg-beige-light/50"
     >
       <div className="flex h-24 items-center justify-center bg-beige text-xs font-medium text-stone-500">
         {article.image ? (
