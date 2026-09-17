@@ -16,7 +16,7 @@ body,
 }
 
 body {
-  background-color: var(--color-beige-light);
+  background-color: #ffffff;
   color: var(--color-ink);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }

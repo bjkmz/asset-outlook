@@ -12,17 +12,29 @@ function App() {
   const [missing, setMissing] = useState<string | null>(null)
 
   return (
-    <div className="min-h-screen">
-      <Header onAdd={add} onMissing={setMissing} />
-      <div className="mx-auto flex max-w-6xl">
+    <div className="min-h-screen bg-white">
+      <Header
+        symbols={symbols}
+        onAdd={add}
+        onRemove={remove}
+        onMissing={setMissing}
+      />
+      <div className="flex min-h-screen w-full">
         <Sidebar />
-        <main className="w-full p-4">
+        <main className="w-full min-w-0 flex-1 p-4 md:p-6">
           <Routes>
             <Route
               path="/"
-              element={<Home symbols={symbols} onRemove={remove} />}
+              element={
+                <Home symbols={symbols} onAdd={add} onRemove={remove} />
+              }
             />
-            <Route path="/asset/:symbol" element={<AssetView />} />
+            <Route
+              path="/asset/:symbol"
+              element={
+                <AssetView symbols={symbols} onAdd={add} onRemove={remove} />
+              }
+            />
           </Routes>
         </main>
       </div>

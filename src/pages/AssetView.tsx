@@ -1,12 +1,21 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { PriceChart } from '../components/PriceChart'
+import { StarButton } from '../components/StarButton'
 import { MOCK_ASSETS, mockNews, mockPrices } from '../mocks/market'
 import type { RangeKey } from '../types'
 
 const RANGES: RangeKey[] = ['1d', '1w', '1Mo', '3Mo', '1Y', '5Y']
 
-export function AssetView() {
+export function AssetView({
+  symbols,
+  onAdd,
+  onRemove,
+}: {
+  symbols: string[]
+  onAdd: (symbol: string) => void
+  onRemove: (symbol: string) => void
+}) {
   const { symbol = '' } = useParams()
   const [range, setRange] = useState<RangeKey>('1d')
   const asset = MOCK_ASSETS.find((a) => a.symbol === symbol)
@@ -22,9 +31,20 @@ export function AssetView() {
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-coffee-dark/40 bg-white p-4 shadow-sm">
-        <h1 className="text-xl font-bold">
-          {asset.name} ({asset.symbol})
-        </h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl font-bold">
+            {asset.name} ({asset.symbol})
+          </h1>
+          <StarButton
+            tracked={symbols.includes(asset.symbol)}
+            label={asset.symbol}
+            onToggle={() =>
+              symbols.includes(asset.symbol)
+                ? onRemove(asset.symbol)
+                : onAdd(asset.symbol)
+            }
+          />
+        </div>
         <div className="mt-2">
           <PriceChart data={prices} height={280} />
         </div>
