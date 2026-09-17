@@ -1,0 +1,74 @@
+Concept:
+An asset tracking app where one can mark assets of interests and get price previews
+
+Tech stack:
+React framework, Tailwind CSS, Typescript
+Recharts, Tanstack Query, ElysiaJS
+Storage: SQLite (as cache, store bulk from API requests)
+APIs:
+1. Asset APIs
+- Financial Modeling Prep (FMP): limited to fetching for lists of all feasible assets (stock, crypto, commodity, forex, indices)
+- Yahoo Finance: for market price history and cap
+2. News APIs
+- Finnhub (only for now)
+
+
+save asset interests on localStorage for the meantime
+
+in the reference dir, included are interface drafts
+1.png - home
+- collapsible side menu (no contents yet, for future purposes)
+
+Header space will include the brand logo and a search bar atop
+
+for every asset saved in interests..
+asset name, chart preview range 1d 1hr interval, latest available articles (cover, article title, date and time shown) max 4 visible in screen
+
+2.png - asset view
+
+Asset chart (fixed size 150 candles, interval is computed/derived)
+- ranges: 1d, 1w, 1Mo, 3Mo, 1Y, 5y
+
+Below is a feed of news articles (sorted by recency), shown is the cover, title, and summary
+Clicking on the article row, opens new tab of the actual article
+
+improve design to be more sleek and look professional
+color scheme: black, white, coffee (#deccaf), and further beiges and light browns
+
+
+
+DATA FLOW LOGIC:
+1. FMP query on list of assets, to store on local SQLite, ensure categorized(stock / index / commodity / forex / crypto) - save timestamped, udpated after 30 days
+
+User using search bar to find asset (searches on local list)
+If user adds asset to interests, request made to Yahoo checking if asset available. If not, an information modal pops.
+
+2. Request to Yahoo
+
+Ready-made queries are called
+a. on time asset added to interests and
+b. asset interface viewed
+provided that the specific query has no saved response or existing is older than 1hr30min
+Responses are cached locally (sqlite) together with the request.
+For successful updates, old saves are removed.
+
+3. News APIs
+
+Similarly, fetches to news apis (eg. Finnhub) is cached locally, dates are critical as those articles older than 30 days are not saved or removed.
+
+Saved responses are updated if latest is older than 1hr30min
+
+
+SQLite draft:
+
+requests (table)
+- request_id
+- request (the query/request done to the API)
+
+responses
+- request_id
+- timestamp
+- response (the actual response obtained from the API using the request)
+
+
+I have saved my API keys, an env file will be used for that.
