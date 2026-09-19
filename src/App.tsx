@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Route, Routes } from 'react-router'
 import { Sidebar } from './components/Sidebar'
 import { UnavailableModal } from './components/UnavailableModal'
@@ -6,9 +6,39 @@ import { AssetView } from './pages/AssetView'
 import { Home } from './pages/Home'
 import { useInterests } from './store/useInterests'
 
+async function isAvailable(symbol: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/availability/${encodeURIComponent(symbol)}`)
+    if (!res.ok) return false
+    const json = (await res.json()) as { available: boolean }
+    return json.available === true
+  } catch {
+    return false
+  }
+}
+
 function App() {
   const { symbols, add, remove } = useInterests()
   const [missing, setMissing] = useState<string | null>(null)
+  const [pending, setPending] = useState<string[]>([])
+
+  // Yahoo check gates every add. Star shows loading until confirmed.
+  const addTracked = useCallback(
+    async (symbol: string) => {
+      if (symbols.includes(symbol) || pending.includes(symbol)) return
+      setPending((p) => [...p, symbol])
+      try {
+        if (await isAvailable(symbol)) {
+          add(symbol)
+        } else {
+          setMissing(symbol)
+        }
+      } finally {
+        setPending((p) => p.filter((s) => s !== symbol))
+      }
+    },
+    [add, pending, symbols],
+  )
 
   return (
     <div className="min-h-screen bg-white">
@@ -21,7 +51,8 @@ function App() {
               element={
                 <Home
                   symbols={symbols}
-                  onAdd={add}
+                  pending={pending}
+                  onAdd={addTracked}
                   onRemove={remove}
                   onMissing={setMissing}
                 />
@@ -32,7 +63,8 @@ function App() {
               element={
                 <AssetView
                   symbols={symbols}
-                  onAdd={add}
+                  pending={pending}
+                  onAdd={addTracked}
                   onRemove={remove}
                   onMissing={setMissing}
                 />

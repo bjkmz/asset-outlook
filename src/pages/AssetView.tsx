@@ -1,22 +1,36 @@
 import { useState } from 'react'
 import { useParams } from 'react-router'
+import { CandleChart } from '../components/CandleChart'
 import { DateTimeLine } from '../components/DateTimeLine'
-import { PriceChart } from '../components/PriceChart'
 import { StarButton } from '../components/StarButton'
 import { TitleSpace } from '../components/TitleSpace'
+import { usePrices } from '../hooks/usePrices'
 import { useResolvedAssets } from '../hooks/useResolvedAssets'
-import { mockNews, mockPrices } from '../mocks/market'
+import { displaySymbol } from '../lib/format'
+import { mockNews } from '../mocks/market'
 import type { RangeKey } from '../types'
 
-const RANGES: RangeKey[] = ['1d', '1w', '1Mo', '3Mo', '1Y', '5Y']
+const RANGES: { key: RangeKey; label: string }[] = [
+  { key: '1d', label: '1D' },
+  { key: '5d', label: '5D' },
+  { key: '1Mo', label: '1M' },
+  { key: '3Mo', label: '3M' },
+  { key: '6mo', label: '6M' },
+  { key: '1Y', label: '1Y' },
+  { key: '5y', label: '5Y' },
+  { key: 'ytd', label: 'YTD' },
+  { key: 'max', label: 'MAX' },
+]
 
 export function AssetView({
   symbols,
+  pending,
   onAdd,
   onRemove,
   onMissing,
 }: {
   symbols: string[]
+  pending: string[]
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
@@ -24,7 +38,12 @@ export function AssetView({
   const { symbol = '' } = useParams()
   const [range, setRange] = useState<RangeKey>('1d')
   const [asset] = useResolvedAssets(symbol ? [symbol] : [])
-  const prices = mockPrices(symbol, range)
+  const { data, isFetching } = usePrices(
+    symbol,
+    range,
+    range === '1d' ? 'detail' : 'preview',
+  )
+  const candles = data?.candles ?? []
   const news = [...mockNews(symbol)].sort(
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
   )
@@ -39,10 +58,11 @@ export function AssetView({
         title={
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">
-              {asset.name} ({asset.symbol})
+              {asset.name} ({displaySymbol(asset.symbol)})
             </h1>
             <StarButton
               tracked={symbols.includes(asset.symbol)}
+              pending={pending.includes(asset.symbol)}
               label={asset.symbol}
               onToggle={() =>
                 symbols.includes(asset.symbol)
@@ -53,28 +73,33 @@ export function AssetView({
           </div>
         }
         symbols={symbols}
+        pending={pending}
         onAdd={onAdd}
         onRemove={onRemove}
         onMissing={onMissing}
       />
       <main className="space-y-4 p-4 md:p-6">
       <section className="bg-white py-2">
-        <div className="mt-2">
-          <PriceChart data={prices} height={280} />
-        </div>
+        {candles.length > 0 ? (
+          <CandleChart data={candles} height={280} />
+        ) : (
+          <p className="py-20 text-center text-sm text-stone-400">
+            {isFetching ? 'Loading chart…' : 'No price data. Start the backend for live charts.'}
+          </p>
+        )}
         <div className="mt-2 flex justify-end gap-1">
           {RANGES.map((r) => (
             <button
-              key={r}
+              key={r.key}
               type="button"
-              onClick={() => setRange(r)}
+              onClick={() => setRange(r.key)}
               className={`rounded-md px-2 py-1 text-xs font-bold ${
-                r === range
+                r.key === range
                   ? 'bg-ink text-white'
                   : 'bg-beige-light text-ink hover:bg-coffee/60'
               }`}
             >
-              {r === '1Mo' ? '1M' : r}
+              {r.label}
             </button>
           ))}
         </div>

@@ -4,12 +4,14 @@ import { SearchBar } from './SearchBar'
 export function TitleSpace({
   title,
   symbols,
+  pending,
   onAdd,
   onRemove,
   onMissing,
 }: {
   title: ReactNode
   symbols: string[]
+  pending: string[]
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
@@ -21,6 +23,7 @@ export function TitleSpace({
         <div className="ml-auto mr-6 w-full max-w-sm shrink-0 md:mr-12">
           <SearchBar
             symbols={symbols}
+            pending={pending}
             onAdd={onAdd}
             onRemove={onRemove}
             onMissing={onMissing}

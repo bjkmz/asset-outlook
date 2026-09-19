@@ -1,24 +1,29 @@
 import { Link } from 'react-router'
-import { mockNews, mockPreview } from '../mocks/market'
+import { displaySymbol } from '../lib/format'
+import { mockNews } from '../mocks/market'
 import type { Asset } from '../types'
+import { CandleChart } from './CandleChart'
 import { NewsCard } from './NewsCard'
-import { PriceChart } from './PriceChart'
 import { StarButton } from './StarButton'
+import { usePrices } from '../hooks/usePrices'
 
 export function AssetRow({
   asset,
   tracked,
+  pending,
   onAdd,
   onRemove,
 }: {
   asset: Asset
   tracked: boolean
+  pending: boolean
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
 }) {
-  const preview = mockPreview(asset.symbol)
+  const { data } = usePrices(asset.symbol, '1d', 'preview')
+  const candles = data?.candles ?? []
   const news = mockNews(asset.symbol)
-  const last = preview[preview.length - 1]?.price ?? 0
+  const last = candles.length > 0 ? candles[candles.length - 1].c : null
 
   return (
     <section className="bg-white px-1 py-6">
@@ -27,12 +32,15 @@ export function AssetRow({
           to={`/asset/${asset.symbol}`}
           className="text-lg font-bold text-ink hover:underline"
         >
-          {asset.name} ({asset.symbol})
+          {asset.name} ({displaySymbol(asset.symbol)})
         </Link>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">${last.toFixed(2)}</span>
+          {last !== null && (
+            <span className="text-sm font-semibold">${last.toFixed(2)}</span>
+          )}
           <StarButton
             tracked={tracked}
+            pending={pending}
             label={asset.symbol}
             onToggle={() =>
               tracked ? onRemove(asset.symbol) : onAdd(asset.symbol)
@@ -41,7 +49,13 @@ export function AssetRow({
         </div>
       </div>
       <div className="mt-3 grid gap-4 md:grid-cols-[280px_1fr]">
-        <PriceChart data={preview} height={140} />
+        {candles.length > 0 ? (
+          <CandleChart data={candles} height={140} compact />
+        ) : (
+          <p className="py-10 text-center text-xs text-stone-400">
+            No price data. Start the backend for live charts.
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {news.map((a) => (
             <NewsCard key={a.id} article={a} />

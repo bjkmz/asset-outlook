@@ -26,8 +26,8 @@ asset name, chart preview range 1d 1hr interval, latest available articles (cove
 
 2.png - asset view
 
-Asset chart (fixed size 150 candles, interval is computed/derived)
-- ranges: 1d, 1w, 1Mo, 3Mo, 1Y, 5y
+Asset chart (150 candles, interval is computed/derived)
+- ranges: 1d, 5d, 1Mo, 3Mo, 6mo, 1Y, 5y, ytd, max
 
 Below is a feed of news articles (sorted by recency), shown is the cover, title, and summary
 Clicking on the article row, opens new tab of the actual article

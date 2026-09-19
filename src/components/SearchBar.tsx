@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { searchMockAssets } from '../mocks/market'
+import { displaySymbol } from '../lib/format'
 import type { Asset } from '../types'
 import { StarButton } from './StarButton'
 
@@ -17,11 +17,13 @@ async function fetchAssets(q: string): Promise<ApiAsset[]> {
 
 export function SearchBar({
   symbols,
+  pending,
   onAdd,
   onRemove,
   onMissing,
 }: {
   symbols: string[]
+  pending: string[]
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
@@ -42,8 +44,7 @@ export function SearchBar({
     staleTime: 5 * 60_000,
     retry: false,
   })
-  // Mock list covers the server-down case.
-  const results: ApiAsset[] = data ?? (isError && debounced ? searchMockAssets(debounced).map((a) => ({ ...a, exchange: '' })) : [])
+  const results: ApiAsset[] = data ?? []
 
   const openAsset = (symbol: string) => {
     setQ('')
@@ -64,7 +65,15 @@ export function SearchBar({
             Selecting a result opens its page. It is not tracked until you star
             it.
           </p>
-          {results.length === 0 && (
+          {isFetching && (
+            <p className="px-4 py-2 text-xs text-stone-400">Searching…</p>
+          )}
+          {isError && (
+            <p className="px-4 py-2 text-xs text-stone-500">
+              Search is unavailable. Error encountered.
+            </p>
+          )}
+          {!isFetching && !isError && results.length === 0 && (
             <button
               type="button"
               onClick={() => {
@@ -75,9 +84,6 @@ export function SearchBar({
             >
               No local match for “{q.trim().toUpperCase()}” — check availability
             </button>
-          )}
-          {isFetching && (
-            <p className="px-4 py-2 text-xs text-stone-400">Searching…</p>
           )}
           {results.map((a) => {
             const tracked = symbols.includes(a.symbol)
@@ -91,7 +97,7 @@ export function SearchBar({
                   onClick={() => openAsset(a.symbol)}
                   className="min-w-0 flex-1 px-2 py-1 text-left text-sm"
                 >
-                  <span className="font-semibold">{a.symbol}</span>
+                  <span className="font-semibold">{displaySymbol(a.symbol)}</span>
                   <span className="ml-2 text-stone-500">{a.name}</span>
                   {a.exchange && (
                     <span className="ml-2 text-[11px] text-stone-400">{a.exchange}</span>
@@ -99,6 +105,7 @@ export function SearchBar({
                 </button>
                 <StarButton
                   tracked={tracked}
+                  pending={pending.includes(a.symbol)}
                   label={a.symbol}
                   onToggle={() =>
                     tracked ? onRemove(a.symbol) : onAdd(a.symbol)

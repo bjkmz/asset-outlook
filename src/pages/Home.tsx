@@ -5,11 +5,13 @@ import { useResolvedAssets } from '../hooks/useResolvedAssets'
 
 export function Home({
   symbols,
+  pending,
   onAdd,
   onRemove,
   onMissing,
 }: {
   symbols: string[]
+  pending: string[]
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
@@ -27,6 +29,7 @@ export function Home({
           />
         }
         symbols={symbols}
+        pending={pending}
         onAdd={onAdd}
         onRemove={onRemove}
         onMissing={onMissing}
@@ -44,6 +47,7 @@ export function Home({
               key={a.symbol}
               asset={a}
               tracked
+              pending={pending.includes(a.symbol)}
               onAdd={onAdd}
               onRemove={onRemove}
             />

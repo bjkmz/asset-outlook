@@ -1,6 +1,16 @@
 import { Elysia } from 'elysia'
 import { db } from './db'
-import { ensureFresh, KINDS, searchAssets, syncKinds, type AssetKind } from './tv'
+import {
+  COMMODITY_SEGMENTS,
+  ensureFresh,
+  KINDS,
+  searchAssets,
+  syncCommoditySegment,
+  syncKinds,
+  type AssetKind,
+  type CommoditySegment,
+} from './tv'
+import { checkAvailable, getPrices, YAHOO_RANGES, type YahooMode, type YahooRange } from './yahoo'
 
 const VALID: AssetKind[] = [...KINDS]
 
@@ -37,19 +47,49 @@ export const app = new Elysia()
     const placeholders = list.map(() => '?').join(',')
     return db
       .query(
-        `SELECT symbol, exchange, name, kind, market_cap, volume, sort_rank FROM assets
+        `SELECT symbol, exchange, name, kind, segment, market_cap, volume, sort_rank FROM assets
          WHERE symbol IN (${placeholders}) ORDER BY sort_rank ASC`,
       )
       .all(...list)
   })
   .post('/api/assets/refresh', async ({ body }) => {
-    const b = (body ?? {}) as { kind?: unknown }
+    const b = (body ?? {}) as { kind?: unknown; segment?: unknown }
     const kind = b.kind === undefined ? null : parseKind(b.kind)
     if (b.kind !== undefined && kind === null) {
       return { ok: false, error: 'Invalid kind' }
     }
-    await syncKinds(kind ? [kind] : [...KINDS])
+    const segment =
+      typeof b.segment === 'string' &&
+      (COMMODITY_SEGMENTS as string[]).includes(b.segment)
+        ? (b.segment as CommoditySegment)
+        : null
+    if (b.segment !== undefined && segment === null) {
+      return { ok: false, error: 'Invalid segment' }
+    }
+    if (kind === 'commodity' && segment) {
+      await syncCommoditySegment(segment, true)
+    } else {
+      await syncKinds(kind ? [kind] : [...KINDS], true)
+    }
     return { ok: true }
+  })
+  .get('/api/prices/:symbol', async ({ params, query, status }) => {
+    const range = query.range as YahooRange | undefined
+    const mode = (query.mode as YahooMode | undefined) ?? 'preview'
+    if (!range || !YAHOO_RANGES.includes(range)) {
+      return status(400, { error: 'Invalid range' })
+    }
+    if (mode !== 'preview' && mode !== 'detail') {
+      return status(400, { error: 'Invalid mode' })
+    }
+    return getPrices(params.symbol, range, mode)
+  })
+  .get('/api/availability/:symbol', async ({ params }) => {
+    try {
+      return { available: await checkAvailable(params.symbol) }
+    } catch {
+      return { available: false }
+    }
   })
   .listen(3000)
 
