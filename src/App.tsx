@@ -18,7 +18,7 @@ async function isAvailable(symbol: string): Promise<boolean> {
 }
 
 function App() {
-  const { symbols, add, remove } = useInterests()
+  const { symbols, add, remove, user, authLoading, cloudReady } = useInterests()
   const [missing, setMissing] = useState<string | null>(null)
   const [pending, setPending] = useState<string[]>([])
 
@@ -45,6 +45,12 @@ function App() {
       <div className="flex min-h-screen w-full">
         <Sidebar />
         <div className="w-full min-w-0 flex-1">
+          <p
+            className="px-4 pt-2 text-right text-[11px] text-stone-400"
+            title={user ? `Signed in as ${user.uid}` : 'Cloud sync off'}
+          >
+            {authLoading ? 'Sync…' : cloudReady ? `Cloud sync on${user?.isAnonymous ? ' (anonymous)' : ''}` : 'Local only'}
+          </p>
           <Routes>
             <Route
               path="/"
