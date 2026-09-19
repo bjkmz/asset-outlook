@@ -1,7 +1,19 @@
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { MOCK_ASSETS, searchMockAssets } from '../mocks/market'
+import { searchMockAssets } from '../mocks/market'
+import type { Asset } from '../types'
 import { StarButton } from './StarButton'
+
+interface ApiAsset extends Asset {
+  exchange: string
+}
+
+async function fetchAssets(q: string): Promise<ApiAsset[]> {
+  const res = await fetch(`/api/assets?q=${encodeURIComponent(q)}&limit=8`)
+  if (!res.ok) throw new Error('asset search failed')
+  return res.json()
+}
 
 export function SearchBar({
   symbols,
@@ -15,8 +27,23 @@ export function SearchBar({
   onMissing: (symbol: string) => void
 }) {
   const [q, setQ] = useState('')
+  const [debounced, setDebounced] = useState('')
   const navigate = useNavigate()
-  const results = searchMockAssets(q)
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(q.trim()), 250)
+    return () => clearTimeout(id)
+  }, [q])
+
+  const { data, isError, isFetching } = useQuery({
+    queryKey: ['assets', debounced],
+    queryFn: () => fetchAssets(debounced),
+    enabled: debounced.length > 0,
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
+  // Mock list covers the server-down case.
+  const results: ApiAsset[] = data ?? (isError && debounced ? searchMockAssets(debounced).map((a) => ({ ...a, exchange: '' })) : [])
 
   const openAsset = (symbol: string) => {
     setQ('')
@@ -49,28 +76,26 @@ export function SearchBar({
               No local match for “{q.trim().toUpperCase()}” — check availability
             </button>
           )}
+          {isFetching && (
+            <p className="px-4 py-2 text-xs text-stone-400">Searching…</p>
+          )}
           {results.map((a) => {
             const tracked = symbols.includes(a.symbol)
             return (
               <div
-                key={a.symbol}
+                key={`${a.exchange}:${a.symbol}`}
                 className="flex items-center gap-1 px-2 py-1 hover:bg-beige-light"
               >
                 <button
                   type="button"
-                  onClick={() => {
-                    // Mock Yahoo availability: only local list is available.
-                    if (MOCK_ASSETS.some((m) => m.symbol === a.symbol)) {
-                      openAsset(a.symbol)
-                    } else {
-                      onMissing(a.symbol)
-                      setQ('')
-                    }
-                  }}
+                  onClick={() => openAsset(a.symbol)}
                   className="min-w-0 flex-1 px-2 py-1 text-left text-sm"
                 >
                   <span className="font-semibold">{a.symbol}</span>
                   <span className="ml-2 text-stone-500">{a.name}</span>
+                  {a.exchange && (
+                    <span className="ml-2 text-[11px] text-stone-400">{a.exchange}</span>
+                  )}
                 </button>
                 <StarButton
                   tracked={tracked}

@@ -4,7 +4,8 @@ import { DateTimeLine } from '../components/DateTimeLine'
 import { PriceChart } from '../components/PriceChart'
 import { StarButton } from '../components/StarButton'
 import { TitleSpace } from '../components/TitleSpace'
-import { MOCK_ASSETS, mockNews, mockPrices } from '../mocks/market'
+import { useResolvedAssets } from '../hooks/useResolvedAssets'
+import { mockNews, mockPrices } from '../mocks/market'
 import type { RangeKey } from '../types'
 
 const RANGES: RangeKey[] = ['1d', '1w', '1Mo', '3Mo', '1Y', '5Y']
@@ -22,14 +23,14 @@ export function AssetView({
 }) {
   const { symbol = '' } = useParams()
   const [range, setRange] = useState<RangeKey>('1d')
-  const asset = MOCK_ASSETS.find((a) => a.symbol === symbol)
+  const [asset] = useResolvedAssets(symbol ? [symbol] : [])
   const prices = mockPrices(symbol, range)
   const news = [...mockNews(symbol)].sort(
     (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
   )
 
-  if (!asset) {
-    return <p className="text-sm text-stone-500">Unknown asset “{symbol}”.</p>
+  if (!symbol) {
+    return <p className="text-sm text-stone-500">Unknown asset.</p>
   }
 
   return (

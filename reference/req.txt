@@ -1,0 +1,138 @@
+working post request:
+
+1. STOCKS
+
+https://scanner.tradingview.com/global/scan
+
+POST request body:
+{
+  "filter": [
+    { "left": "type", "operation": "equal", "right": "stock" },
+    { "left": "is_primary", "operation": "equal", "right": true },
+    { "left": "market_cap_basic", "operation": "nempty" }
+  ],
+  "options": { "lang": "en" },
+  "sort": {
+    "sortBy": "market_cap_basic",
+    "sortOrder": "desc"
+  },
+  "range": [0, 500],
+  "columns": [
+    "name",
+    "description",
+    "close",
+    "market_cap_basic",
+    "volume",
+    "change"
+  ]
+}
+
+
+
+2. INDICES
+
+https://scanner.tradingview.com/global/scan
+
+POST request body:
+{
+  "filter": [
+    { "left": "type", "operation": "equal", "right": "index" },
+    { "left": "exchange", "operation": "nequal", "right": "CRYPTOCAP" }
+  ],
+  "options": { "lang": "en" },
+  "sort": {
+    "sortBy": "volume",
+    "sortOrder": "desc"
+  },
+  "range": [0, 50],
+  "columns": [
+    "name",
+    "description",
+    "close",
+    "volume",
+    "change"
+  ]
+}
+
+
+
+3. COMMODITIES
+
+https://scanner.tradingview.com/futures/scan
+
+POST request body:
+{
+  "filter": [
+    { "left": "is_primary", "operation": "equal", "right": true },
+    { "left": "name", "operation": "match", "right": "1!" }
+  ],
+  "options": { "lang": "en" },
+  "sort": {
+    "sortBy": "volume",
+    "sortOrder": "desc"
+  },
+  "range": [0, 100],
+  "columns": [
+    "name",
+    "description",
+    "close",
+    "volume",
+    "change"
+  ]
+}
+
+
+
+4. FOREX
+
+https://scanner.tradingview.com/forex/scan
+
+POST request body:
+{
+  "filter": [
+    { "left": "name", "operation": "nempty" }
+  ],
+  "options": { "lang": "en" },
+  "sort": {
+    "sortBy": "volume",
+    "sortOrder": "desc"
+  },
+  "range": [0, 200],
+  "columns": [
+    "name",
+    "description",
+    "close",
+    "volume",
+    "change"
+  ]
+}
+
+
+
+5. CRYPTO
+
+https://scanner.tradingview.com/coin/scan
+
+POST request body:
+{
+  "filter": [
+    { "left": "market_cap_calc", "operation": "nempty" }
+  ],
+  "options": { "lang": "en" },
+  "sort": {
+    "sortBy": "market_cap_calc",
+    "sortOrder": "desc"
+  },
+  "range": [0, 200],
+  "columns": [
+    "name",
+    "description",
+    "close",
+    "market_cap_calc",
+    "24h_vol|60",
+    "change"
+  ]
+}
+
+
+.

@@ -1,7 +1,7 @@
 import { AssetRow } from '../components/AssetRow'
 import { DateTimeLine } from '../components/DateTimeLine'
 import { TitleSpace } from '../components/TitleSpace'
-import { MOCK_ASSETS } from '../mocks/market'
+import { useResolvedAssets } from '../hooks/useResolvedAssets'
 
 export function Home({
   symbols,
@@ -14,9 +14,7 @@ export function Home({
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
 }) {
-  const assets = symbols
-    .map((s) => MOCK_ASSETS.find((a) => a.symbol === s))
-    .filter((a) => a !== undefined)
+  const assets = useResolvedAssets(symbols)
 
   return (
     <div>
@@ -35,7 +33,7 @@ export function Home({
       />
       <main className="space-y-8 p-4 md:p-6">
         <DateTimeLine />
-        {assets.length === 0 ? (
+        {symbols.length === 0 ? (
           <p className="p-8 text-center text-sm text-stone-500">
             No interests yet. Use the search bar above to view an asset, then
             star it to track it here.

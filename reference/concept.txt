@@ -7,7 +7,7 @@ Recharts, Tanstack Query, ElysiaJS
 Storage: SQLite (as cache, store bulk from API requests)
 APIs:
 1. Asset APIs
-- Financial Modeling Prep (FMP): limited to fetching for lists of all feasible assets (stock, crypto, commodity, forex, indices)
+- TradingView: limited to fetching for lists of all feasible assets (stock, crypto, commodity, forex, indices)
 - Yahoo Finance: for market price history and cap
 2. News APIs
 - Finnhub (only for now)
@@ -38,7 +38,7 @@ color scheme: black, white, coffee (#deccaf), and further beiges and light brown
 
 
 DATA FLOW LOGIC:
-1. FMP query on list of assets, to store on local SQLite, ensure categorized(stock / index / commodity / forex / crypto) - save timestamped, udpated after 30 days
+1. TradingView query on list of assets, to store on local SQLite, ensure categorized(stock / index / commodity / forex / crypto) - save timestamped, udpated after 10 days
 
 User using search bar to find asset (searches on local list)
 If user adds asset to interests, request made to Yahoo checking if asset available. If not, an information modal pops.
