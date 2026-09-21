@@ -44,22 +44,47 @@ export function useInterests() {
   const { user, authLoading } = useAuthUser()
   const [symbols, setSymbols] = useState<string[]>(loadLocal)
   const [cloudReady, setCloudReady] = useState(false)
-  const migrated = useRef(false)
+  const migratedUid = useRef<string | null>(null)
+  const lastUid = useRef<string | null>(null)
+  const lastWasAnon = useRef(false)
+
+  // Fresh guest state after explicit sign-out: no carry-over from previous account.
+  const resetGuest = useCallback(() => {
+    saveLocal(DEFAULTS)
+    setSymbols(DEFAULTS)
+    setCloudReady(false)
+  }, [])
 
   // Live-subscribe to cloud watchlist once signed in.
   useEffect(() => {
     if (!isFirebaseConfigured || !db || !user) return
+    // Account switch: previous permanent account must not flash into new identity.
+    // Guest -> account upgrade keeps visible list until cloud snapshot lands.
+    const prevUid = lastUid.current
+    const prevAnon = lastWasAnon.current
+    const switchedFromPermanent = prevUid !== null && prevUid !== user.uid && !prevAnon
+    if (switchedFromPermanent) {
+      setSymbols(DEFAULTS)
+      saveLocal(DEFAULTS)
+      setCloudReady(false)
+    }
+    // Seed source: first load + guest upgrade carry device list;
+    // permanent -> anything different starts blank for privacy.
+    const seedFromLocal = prevUid === null || prevUid === user.uid || prevAnon
+    lastUid.current = user.uid
+    lastWasAnon.current = !!user.isAnonymous
     const ref = doc(db, 'users', user.uid, 'watchlists', DOC_ID)
     return onSnapshot(
       ref,
       (snap) => {
         setCloudReady(true)
         if (!snap.exists()) {
-          // First login: migrate local symbols to cloud (once).
-          if (!migrated.current) {
-            migrated.current = true
-            const local = loadLocal()
+          // First seen per UID: seed cloud (guest list on upgrade, defaults otherwise).
+          if (migratedUid.current !== user.uid) {
+            migratedUid.current = user.uid
+            const local = seedFromLocal ? loadLocal() : DEFAULTS
             setSymbols(local)
+            saveLocal(local)
             void pushCloud(user.uid, local).catch((e) => console.warn('[interests] migrate failed:', e))
           }
           return
@@ -96,5 +121,5 @@ export function useInterests() {
     [symbols, user],
   )
 
-  return { symbols, add, remove, user, authLoading, cloudReady }
+  return { symbols, add, remove, resetGuest, user, authLoading, cloudReady }
 }
