@@ -1,0 +1,58 @@
+you can not read the env file
+
+below are some context for the next step:
+
+- Remaining setup
+"""
+Remaining setup tasks against concept.txt, completed work excluded:
+1. B4 Finnhub news (the last unverified data flow, and the largest item):
+- .env plus .env.example for the Finnhub key. No env file exists yet.
+- server/news.ts: per-symbol fetch, drop articles older than 30 days before caching, 90-minute refresh, recency sort.
+- GET /api/news/:symbol reusing the responses table.
+- useNews hook replacing mockNews in AssetRow.tsx and AssetView.tsx, then deleting src/mocks/market.ts entirely. Cover images come from Finnhub URLs with the placeholder as fallback.
+- Open design points: Finnhub company-news targets stocks, so forex, commodity, crypto, and index symbols need an endpoint decision (general news versus symbol-mapped company news), plus a TV-to-Finnhub symbol map.
+2. Small verification debts:
+- ytd and max ranges share the tested code path but were never curled live.
+- Stored crypto volume is NULL (the 24h_vol|60 column arrives non-numeric). Ranks are unaffected since sort_rank is stored, but the column is dead weight unless remapped.
+3. Optional developer experience:
+- GET /api/health was proposed during the proxy-error diagnosis but never built.
+- Production concerns (database persistence, port configuration, no auth) are untouched and out of current scope. 
+"""
+
+- Finnhub sample Apple request
+"""
+[finnhub sample Apple request: https://finnhub.io/api/v1/company-news?symbol=AAPL&from=2026-03-01&to=2026-03-15&token=[APIKEY]
+Response:
+"[
+  {
+    "category": "company",
+    "datetime": 1773618240,
+    "headline": "Himax Technologies: The Best Is Yet To Come",
+    "id": 139418725,
+    "image": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/677252721/image_677252721.jpg?io=getty-c-w1536",
+    "related": "AAPL",
+    "source": "SeekingAlpha",
+    "summary": "Himax (HIMX) stock thesis: rumored NVIDIA/Apple ties, TSMC Coupe energy-saving AI data center tech, and 2026 smart glasses catalystâread now.",
+    "url": "https://finnhub.io/api/news?id=3a8a31f9cb5281fb0e620c4fcadf9c925745dc62f8c3130770d7a676158d2485"
+  },
+  {
+    "category": "company",
+    "datetime": 1773614700,
+    "headline": "The Most Overlooked Artificial Intelligence (AI) Stocks in the \"Magnificent Seven\" for 2026",
+    "id": 139417563,
+    "image": "https://s.yimg.com/rz/stage/p/yahoo_finance_en-US_h_p_finance_2.png",
+    "related": "AAPL",
+    "source": "Yahoo",
+    "summary": "Amazon and Microsoft are two huge players in the AI realm that don't get enough credit.",
+    "url": "https://finnhub.io/api/news?id=e652999017eca947de1185320846e416a1e6dc5258b015876817e85a215c722b"
+  }, "
+
+also works when I replace "AAPL" with "BTC"
+"""
+
+- Approach
+"""
+employ two mechanisms of fetching, first one would be ticker specific fetch like that given sample
+second, fetching by category and filtering to make exclusive with name / symbol
+like "const url = `https://finnhub.io/api/v1/news?category=${category}&token=${apiKey}`;" 
+"""

@@ -17,12 +17,13 @@ export interface Candle {
 
 export interface NewsArticle {
   id: string
-  symbol: string
+  symbol?: string
   title: string
   summary: string
-  image: string
+  image?: string
   url: string
   publishedAt: string
+  source?: string
 }
 
 export type RangeKey =
