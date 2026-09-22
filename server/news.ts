@@ -54,6 +54,37 @@ export class FinnhubKeyMissingError extends Error {
   }
 }
 
+const NEWS_MAX_ATTEMPTS = 4
+const NEWS_RETRY_DELAY_MS = 2000
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function fetchFinnhub(url: string, label: string): Promise<FinnhubRawArticle[]> {
+  let lastError: Error | null = null
+  for (let attempt = 1; attempt <= NEWS_MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url)
+      if (res.ok) {
+        const data = (await res.json()) as unknown
+        return Array.isArray(data) ? (data as FinnhubRawArticle[]) : []
+      }
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Finnhub ${label} rejected key with status ${res.status}`)
+      }
+      console.error(`[news:${label}] attempt ${attempt} failed with status ${res.status}`)
+      lastError = new Error(`Finnhub ${label} failed with status ${res.status}`)
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('rejected key')) throw err
+      console.error(`[news:${label}] attempt ${attempt} error: ${(err as Error).message}`)
+      lastError = err as Error
+    }
+    if (attempt < NEWS_MAX_ATTEMPTS) await delay(NEWS_RETRY_DELAY_MS)
+  }
+  throw lastError ?? new Error(`Finnhub ${label} failed after retries`)
+}
+
 export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
   const normalized = symbol.trim().toUpperCase()
   const cacheKey = `finnhub:news:${normalized}`
@@ -86,36 +117,36 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   const toStr = formatDateString(today)
   const fromStr = formatDateString(thirtyDaysAgo)
 
-  // 2. Dual-mechanism fetch tasks
-  const fetchTasks: Promise<FinnhubRawArticle[]>[] = []
+  // 2. Dual-mechanism fetch with retries (1 initial + 3 retries, 2s delay)
+  const needsTicker = kind === 'stock' || kind === 'crypto'
+  const tickerUrl = `https://finnhub.io/api/v1/company-news?symbol=${cleanSymbol}&from=${fromStr}&to=${toStr}&token=${apiKey}`
+  const categoryUrl = `https://finnhub.io/api/v1/news?category=${category}&token=${apiKey}`
 
-  // Mechanism A: Ticker-specific fetch (company-news)
-  if (kind === 'stock' || kind === 'crypto') {
-    const tickerUrl = `https://finnhub.io/api/v1/company-news?symbol=${cleanSymbol}&from=${fromStr}&to=${toStr}&token=${apiKey}`
-    fetchTasks.push(
-      fetch(tickerUrl)
-        .then(async (res) => {
-          if (!res.ok) return []
-          const data = (await res.json()) as unknown
-          return Array.isArray(data) ? (data as FinnhubRawArticle[]) : []
-        })
-        .catch(() => []),
-    )
+  const [tickerSettled, categorySettled] = await Promise.all([
+    needsTicker
+      ? fetchFinnhub(tickerUrl, 'ticker').then(
+          (v): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'fulfilled', value: v }),
+          (e): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'rejected', reason: e }),
+        )
+      : Promise.resolve({ status: 'fulfilled', value: [] } as PromiseSettledResult<FinnhubRawArticle[]>),
+    fetchFinnhub(categoryUrl, 'category').then(
+      (v): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'fulfilled', value: v }),
+      (e): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'rejected', reason: e }),
+    ),
+  ])
+
+  const tickerResults = tickerSettled.status === 'fulfilled' ? tickerSettled.value : null
+  const categoryResults = categorySettled.status === 'fulfilled' ? categorySettled.value : null
+
+  if (tickerResults === null && categoryResults === null) {
+    throw new Error('News fetch failed: all Finnhub requests failed after retries')
+  }
+  if (!needsTicker && categoryResults === null) {
+    throw new Error('News fetch failed: category request failed after retries')
   }
 
-  // Mechanism B: Category-specific market news
-  const categoryUrl = `https://finnhub.io/api/v1/news?category=${category}&token=${apiKey}`
-  fetchTasks.push(
-    fetch(categoryUrl)
-      .then(async (res) => {
-        if (!res.ok) return []
-        const data = (await res.json()) as unknown
-        return Array.isArray(data) ? (data as FinnhubRawArticle[]) : []
-      })
-      .catch(() => []),
-  )
-
-  const [tickerResults = [], categoryResults = []] = await Promise.all(fetchTasks)
+  const safeTickerResults = tickerResults ?? []
+  const safeCategoryResults = categoryResults ?? []
 
   // 3. Filter Mechanism B results using exclusive name/symbol markers
   const filterKeywords = new Set<string>()
@@ -144,14 +175,14 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
     filterKeywords.add(word)
   }
 
-  const filteredCategoryResults = categoryResults.filter((art) => {
+  const filteredCategoryResults = safeCategoryResults.filter((art) => {
     if (!art.headline) return false
     const text = `${art.headline} ${art.summary || ''}`.toLowerCase()
     return Array.from(filterKeywords).some((kw) => text.includes(kw))
   })
 
   // 4. Merge, deduplicate, filter by date (<= 30 days)
-  const rawMerged = [...tickerResults, ...filteredCategoryResults]
+  const rawMerged = [...safeTickerResults, ...filteredCategoryResults]
   const seenIds = new Set<number>()
   const mergedArticles: NewsArticle[] = []
   const now = Date.now()
