@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 import { db } from './db'
+import { fetchNewsForSymbol, FinnhubKeyMissingError } from './news'
 import {
   COMMODITY_SEGMENTS,
   ensureFresh,
@@ -89,6 +90,16 @@ export const app = new Elysia()
       return { available: await checkAvailable(params.symbol) }
     } catch {
       return { available: false }
+    }
+  })
+  .get('/api/news/:symbol', async ({ params, status }) => {
+    try {
+      return await fetchNewsForSymbol(params.symbol)
+    } catch (err) {
+      if (err instanceof FinnhubKeyMissingError) {
+        return status(401, { error: err.message })
+      }
+      return status(502, { error: `News fetch failed: ${(err as Error).message}` })
     }
   })
   .listen(3000)

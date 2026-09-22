@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { useParams } from 'react-router'
 import { CandleChart } from '../components/CandleChart'
 import { DateTimeLine } from '../components/DateTimeLine'
+import { GeometricCover } from '../components/NewsCard'
 import { StarButton } from '../components/StarButton'
 import { TitleSpace } from '../components/TitleSpace'
+import { useNews } from '../hooks/useNews'
 import { usePrices } from '../hooks/usePrices'
 import { useResolvedAssets } from '../hooks/useResolvedAssets'
 import { displaySymbol } from '../lib/format'
-import { mockNews } from '../mocks/market'
 import type { RangeKey } from '../types'
 
 const RANGES: { key: RangeKey; label: string }[] = [
@@ -43,10 +44,8 @@ export function AssetView({
     range,
     range === '1d' ? 'detail' : 'preview',
   )
+  const { data: news = [], error: newsError, isLoading: newsLoading } = useNews(symbol)
   const candles = data?.candles ?? []
-  const news = [...mockNews(symbol)].sort(
-    (a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt),
-  )
 
   if (!symbol) {
     return <p className="text-sm text-stone-500">Unknown asset.</p>
@@ -108,27 +107,66 @@ export function AssetView({
       <DateTimeLine />
       <section className="bg-white py-2">
         <h2 className="text-lg font-bold">NEWS</h2>
-        <div className="mt-3 space-y-3">
-          {news.map((a) => (
-            <a
-              key={a.id}
-              href={a.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex gap-3 py-3 hover:bg-beige-light/50"
-            >
-              <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-beige text-xs text-stone-500">
-                Cover
+        {newsError ? (
+          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center">
+            <p className="text-sm text-stone-500">
+              {newsError.message.includes('FINNHUB_API_KEY')
+                ? 'Configure FINNHUB_API_KEY in .env file to enable live news feeds.'
+                : 'Unable to load news feed.'}
+            </p>
+          </div>
+        ) : newsLoading ? (
+          <div className="mt-3 space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex animate-pulse gap-3 py-3">
+                <div className="h-20 w-28 shrink-0 rounded-lg bg-stone-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-3/4 bg-stone-200" />
+                  <div className="h-3 w-full bg-stone-200" />
+                  <div className="h-3 w-1/2 bg-stone-200" />
+                </div>
               </div>
-              <div>
-                <p className="font-semibold">{a.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-stone-600">
-                  {a.summary}
-                </p>
-              </div>
-            </a>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : news.length > 0 ? (
+          <div className="mt-3 space-y-3">
+            {news.map((a) => (
+              <a
+                key={a.id}
+                href={a.url}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex gap-3 py-3 transition hover:bg-beige-light/50"
+              >
+                <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-beige">
+                  {a.image ? (
+                    <img
+                      src={a.image}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <GeometricCover label={a.source || a.title} />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-ink group-hover:text-coffee">{a.title}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-stone-600">
+                    {a.summary}
+                  </p>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-stone-400">
+                    <span>{a.source || 'News'}</span>
+                    <span>{new Date(a.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center">
+            <p className="text-sm text-stone-400">No news articles found in the past 30 days.</p>
+          </div>
+        )}
       </section>
       </main>
     </div>
