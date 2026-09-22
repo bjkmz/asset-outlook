@@ -105,7 +105,7 @@ export function Sidebar({
           ‹
         </button>
       </div>
-      <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p>
+      {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
       <div className="mt-auto border-t border-coffee-dark/40 p-2">
         <button
           type="button"

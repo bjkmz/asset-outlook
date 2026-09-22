@@ -93,8 +93,12 @@ export const app = new Elysia()
     }
   })
   .get('/api/news/:symbol', async ({ params, status }) => {
+    const symbol = params.symbol.trim().toUpperCase()
+    if (!/^[A-Z0-9.\-=^!]{1,20}$/.test(symbol)) {
+      return status(400, { error: 'Invalid symbol' })
+    }
     try {
-      return await fetchNewsForSymbol(params.symbol)
+      return await fetchNewsForSymbol(symbol)
     } catch (err) {
       if (err instanceof FinnhubKeyMissingError) {
         return status(401, { error: err.message })

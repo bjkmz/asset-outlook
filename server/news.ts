@@ -55,7 +55,8 @@ export class FinnhubKeyMissingError extends Error {
 }
 
 export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
-  const cacheKey = `finnhub:news:${symbol}`
+  const normalized = symbol.trim().toUpperCase()
+  const cacheKey = `finnhub:news:${normalized}`
 
   // 1. Check SQLite cache
   const cachedJson = getCached(cacheKey, NEWS_TTL_MS)
@@ -65,15 +66,15 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
     return rawArticles.filter((a) => now - +new Date(a.publishedAt) <= THIRTY_DAYS_MS)
   }
 
-  const apiKey = process.env.FINNHUB_API_KEY || process.env.VITE_FINNHUB_API_KEY || ''
+  const apiKey = process.env.FINNHUB_API_KEY || ''
   if (!apiKey || apiKey.includes('your_finnhub_api_key')) {
     throw new FinnhubKeyMissingError()
   }
 
-  const { name, kind } = getAssetDetails(symbol)
+  const { name, kind } = getAssetDetails(normalized)
   const category = getFinnhubCategory(kind)
 
-  let cleanSymbol = symbol.toUpperCase()
+  let cleanSymbol = normalized
   if (kind === 'crypto') {
     cleanSymbol = cleanSymbol.replace(/(USD|USDT|EUR|BTC)$/u, '') || 'BTC'
   } else if (kind === 'commodity') {
@@ -119,7 +120,7 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   // 3. Filter Mechanism B results using exclusive name/symbol markers
   const filterKeywords = new Set<string>()
   if (cleanSymbol.length >= 2) filterKeywords.add(cleanSymbol.toLowerCase())
-  if (symbol.length >= 2) filterKeywords.add(symbol.toLowerCase())
+  if (normalized.length >= 2) filterKeywords.add(normalized.toLowerCase())
 
   const noise = new Set([
     'futures',
@@ -181,7 +182,7 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
 
   // 6. Cache results
   try {
-    setCached(cacheKey, `news:${symbol}`, JSON.stringify(slicedArticles))
+    setCached(cacheKey, `news:${normalized}`, JSON.stringify(slicedArticles))
   } catch (err) {
     console.error('Failed to cache news:', err)
   }
