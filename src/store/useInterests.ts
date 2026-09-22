@@ -1,11 +1,16 @@
 import { doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAuthUser } from '../lib/auth'
+import { takeLastAuthMode, useAuthUser } from '../lib/auth'
 import { db, isFirebaseConfigured } from '../lib/firebase'
 
 const KEY = 'asset-lookout:interests'
-const DEFAULTS = ['AAPL', 'BTCUSD']
+const DEFAULTS = ['AAPL', 'USDJPY', 'SPX', 'GC1!', 'BTCUSD']
 const DOC_ID = 'default'
+
+export interface PendingSync {
+  cloud: string[]
+  local: string[]
+}
 
 function loadLocal(): string[] {
   try {
@@ -26,6 +31,14 @@ function saveLocal(next: string[]) {
   }
 }
 
+function sameList(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((s, i) => s === b[i])
+}
+
+function isDefaults(list: string[]): boolean {
+  return sameList(list, DEFAULTS)
+}
+
 async function pushCloud(uid: string, symbols: string[]) {
   if (!db) return
   await setDoc(
@@ -38,51 +51,63 @@ async function pushCloud(uid: string, symbols: string[]) {
 /**
  * Interests backed by Firestore `users/{uid}/watchlists/default`,
  * with localStorage as offline fallback + one-time migration.
+ * Guests (signed out) use localStorage only.
+ * Sign-ins pull the cloud list (overwriting localStorage), except when the
+ * device list was customized: then `pendingSync` holds both sides until the
+ * user picks load-from-cloud or overwrite-with-local in the AuthModal.
+ * The inquiry is evaluated on every sign-in; resolving converges the lists,
+ * so an answered choice never re-asks by itself.
+ * First-seen UIDs (new signups) push the device list to the cloud.
  * API is backwards compatible with the previous localStorage-only hook.
  */
 export function useInterests() {
   const { user, authLoading } = useAuthUser()
   const [symbols, setSymbols] = useState<string[]>(loadLocal)
   const [cloudReady, setCloudReady] = useState(false)
+  const [pendingSync, setPendingSync] = useState<PendingSync | null>(null)
+  const [syncDismissed, setSyncDismissed] = useState(false)
   const migratedUid = useRef<string | null>(null)
-  const lastUid = useRef<string | null>(null)
-  const lastWasAnon = useRef(false)
+  const handledUid = useRef<string | null>(null)
+  const authModeRef = useRef<'login' | 'signup' | null>(null)
+  const pendingSyncRef = useRef<PendingSync | null>(null)
 
   // Fresh guest state after explicit sign-out: no carry-over from previous account.
+  // Exception: a sync choice left undecided keeps the current device list instead of resetting to defaults.
   const resetGuest = useCallback(() => {
-    saveLocal(DEFAULTS)
-    setSymbols(DEFAULTS)
-    setCloudReady(false)
-  }, [])
-
-  // Live-subscribe to cloud watchlist once signed in.
-  useEffect(() => {
-    if (!isFirebaseConfigured || !db || !user) return
-    // Account switch: previous permanent account must not flash into new identity.
-    // Guest -> account upgrade keeps visible list until cloud snapshot lands.
-    const prevUid = lastUid.current
-    const prevAnon = lastWasAnon.current
-    const switchedFromPermanent = prevUid !== null && prevUid !== user.uid && !prevAnon
-    if (switchedFromPermanent) {
-      setSymbols(DEFAULTS)
+    if (pendingSyncRef.current) {
+      saveLocal(symbols)
+    } else {
       saveLocal(DEFAULTS)
-      setCloudReady(false)
+      setSymbols(DEFAULTS)
     }
-    // Seed source: first load + guest upgrade carry device list;
-    // permanent -> anything different starts blank for privacy.
-    const seedFromLocal = prevUid === null || prevUid === user.uid || prevAnon
-    lastUid.current = user.uid
-    lastWasAnon.current = !!user.isAnonymous
+    setCloudReady(false)
+    setPendingSync(null)
+    setSyncDismissed(false)
+    migratedUid.current = null
+    handledUid.current = null
+    authModeRef.current = null
+    pendingSyncRef.current = null
+  }, [symbols])
+
+  // Live-subscribe to cloud watchlist once signed in. Guests stay local-only.
+  useEffect(() => {
+    if (!isFirebaseConfigured || !db || !user) {
+      setCloudReady(false)
+      return
+    }
+    // Intent for this uid transition; null on session restore (reload).
+    authModeRef.current = takeLastAuthMode()
+    setCloudReady(false)
     const ref = doc(db, 'users', user.uid, 'watchlists', DOC_ID)
     return onSnapshot(
       ref,
       (snap) => {
         setCloudReady(true)
         if (!snap.exists()) {
-          // First seen per UID: seed cloud (guest list on upgrade, defaults otherwise).
+          // First seen per UID: seed cloud from the device list (new signup path).
           if (migratedUid.current !== user.uid) {
             migratedUid.current = user.uid
-            const local = seedFromLocal ? loadLocal() : DEFAULTS
+            const local = loadLocal()
             setSymbols(local)
             saveLocal(local)
             void pushCloud(user.uid, local).catch((e) => console.warn('[interests] migrate failed:', e))
@@ -90,15 +115,67 @@ export function useInterests() {
           return
         }
         const data = snap.data() as { symbols?: unknown }
-        if (Array.isArray(data.symbols)) {
-          const next = data.symbols.filter((s): s is string => typeof s === 'string')
-          setSymbols(next)
-          saveLocal(next)
+        if (!Array.isArray(data.symbols)) return
+        const cloud = data.symbols.filter((s): s is string => typeof s === 'string')
+        // Choice outstanding: leave the device list alone until resolved.
+        if (pendingSyncRef.current) return
+        const local = loadLocal()
+        // Inquiry, decided once per uid: sign-in (or restored session) with a
+        // customized device list that conflicts with an unresolved cloud list.
+        // Signup and untouched-defaults guests keep the silent behavior.
+        if (
+          handledUid.current !== user.uid &&
+          authModeRef.current !== 'signup' &&
+          !isDefaults(local) &&
+          !sameList(cloud, local)
+        ) {
+          handledUid.current = user.uid
+          migratedUid.current = user.uid
+          pendingSyncRef.current = { cloud, local }
+          setPendingSync({ cloud, local })
+          setSymbols(local)
+          saveLocal(local)
+          return
         }
+        // Silent pull (sign-in path): cloud overwrites localStorage.
+        handledUid.current = user.uid
+        migratedUid.current = user.uid
+        setSymbols(cloud)
+        saveLocal(cloud)
       },
       (err) => console.warn('[interests] snapshot failed:', err),
     )
   }, [user])
+
+  const resolveSync = useCallback(
+    (choice: 'pull' | 'push') => {
+      const pending = pendingSyncRef.current
+      const uid = user?.uid
+      if (!pending || !uid) return
+      if (choice === 'pull') {
+        setSymbols(pending.cloud)
+        saveLocal(pending.cloud)
+      } else {
+        setSymbols(pending.local)
+        saveLocal(pending.local)
+        if (db) void pushCloud(uid, pending.local).catch((e) => console.warn('[interests] sync push failed:', e))
+      }
+      pendingSyncRef.current = null
+      setPendingSync(null)
+      setSyncDismissed(false)
+    },
+    [user],
+  )
+
+  /** Dismiss without choosing: keep local, re-offer the choice later. */
+  const dismissSync = useCallback(() => {
+    setSyncDismissed(true)
+  }, [])
+
+  /** Re-offer a dismissed sync choice (account tile re-entry). */
+  const reopenSync = useCallback(() => {
+    setSyncDismissed(false)
+  }, [])
 
   const add = useCallback(
     (symbol: string) => {
@@ -106,7 +183,9 @@ export function useInterests() {
       const next = [...symbols, symbol]
       setSymbols(next)
       saveLocal(next)
-      if (user && db) void pushCloud(user.uid, next).catch((e) => console.warn('[interests] add failed:', e))
+      // No cloud writes while the sync choice is outstanding.
+      if (user && db && !pendingSyncRef.current)
+        void pushCloud(user.uid, next).catch((e) => console.warn('[interests] add failed:', e))
     },
     [symbols, user],
   )
@@ -116,10 +195,25 @@ export function useInterests() {
       const next = symbols.filter((s) => s !== symbol)
       setSymbols(next)
       saveLocal(next)
-      if (user && db) void pushCloud(user.uid, next).catch((e) => console.warn('[interests] remove failed:', e))
+      // No cloud writes while the sync choice is outstanding.
+      if (user && db && !pendingSyncRef.current)
+        void pushCloud(user.uid, next).catch((e) => console.warn('[interests] remove failed:', e))
     },
     [symbols, user],
   )
 
-  return { symbols, add, remove, resetGuest, user, authLoading, cloudReady }
+  return {
+    symbols,
+    add,
+    remove,
+    resetGuest,
+    user,
+    authLoading,
+    cloudReady,
+    pendingSync,
+    syncDismissed,
+    resolveSync,
+    dismissSync,
+    reopenSync,
+  }
 }

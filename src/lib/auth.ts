@@ -1,10 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signInAnonymously,
   signInWithEmailAndPassword,
   signOut,
-  type User,
 } from 'firebase/auth'
 import { useEffect, useState } from 'react'
 import { auth, isFirebaseConfigured } from './firebase'
@@ -24,27 +22,33 @@ export function logout() {
   return signOut(auth)
 }
 
-/** Signs in anonymously if no user yet, so Firestore rules (auth != null) pass. */
-export async function ensureSignedIn(): Promise<User | null> {
-  if (!auth) return null
-  if (auth.currentUser) return auth.currentUser
-  try {
-    const cred = await signInAnonymously(auth)
-    return cred.user
-  } catch (err) {
-    console.warn('[auth] anonymous sign-in failed:', err)
-    return auth.currentUser
-  }
+/**
+ * Records whether the most recent explicit auth attempt was a sign-in
+ * or a signup, so useInterests can apply the matching sync rule.
+ * Consumed once per uid change via takeLastAuthMode.
+ */
+let lastAuthMode: 'login' | 'signup' | null = null
+
+export function setLastAuthMode(mode: 'login' | 'signup') {
+  lastAuthMode = mode
 }
 
+export function takeLastAuthMode(): 'login' | 'signup' | null {
+  const mode = lastAuthMode
+  lastAuthMode = null
+  return mode
+}
+
+/** Guests stay signed out and use localStorage only. */
 export function useAuthUser() {
-  const [user, setUser] = useState<User | null>(auth?.currentUser ?? null)
+  const [user, setUser] = useState(auth?.currentUser ?? null)
   const [loading, setLoading] = useState(() => isFirebaseConfigured && !!auth)
 
   useEffect(() => {
-    if (!auth) return
-    // Guarantee a uid for per-user watchlists even before explicit login.
-    void ensureSignedIn().finally(() => setLoading(false))
+    if (!auth) {
+      setLoading(false)
+      return
+    }
     return onAuthStateChanged(auth, (u) => {
       setUser(u)
       setLoading(false)
