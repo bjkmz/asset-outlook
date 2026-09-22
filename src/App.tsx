@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Route, Routes } from 'react-router'
+import { AuthModal } from './components/AuthModal'
 import { Sidebar } from './components/Sidebar'
 import { UnavailableModal } from './components/UnavailableModal'
 import { AssetView } from './pages/AssetView'
@@ -18,9 +19,22 @@ async function isAvailable(symbol: string): Promise<boolean> {
 }
 
 function App() {
-  const { symbols, add, remove } = useInterests()
+  const {
+    symbols,
+    add,
+    remove,
+    resetGuest,
+    user,
+    pendingSync,
+    syncDismissed,
+    resolveSync,
+    dismissSync,
+    reopenSync,
+    cloudReady,
+  } = useInterests()
   const [missing, setMissing] = useState<string | null>(null)
   const [pending, setPending] = useState<string[]>([])
+  const [authOpen, setAuthOpen] = useState(false)
 
   // Yahoo check gates every add. Star shows loading until confirmed.
   const addTracked = useCallback(
@@ -43,7 +57,7 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <div className="flex min-h-screen w-full">
-        <Sidebar />
+        <Sidebar user={user} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
         <div className="w-full min-w-0 flex-1">
           <Routes>
             <Route
@@ -74,6 +88,18 @@ function App() {
         </div>
       </div>
       <UnavailableModal symbol={missing} onClose={() => setMissing(null)} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        user={user}
+        onBeforeLogout={resetGuest}
+        pendingSync={pendingSync}
+        syncDismissed={syncDismissed}
+        onResolveSync={resolveSync}
+        onDismissSync={dismissSync}
+        onReopenSync={reopenSync}
+        cloudReady={cloudReady}
+      />
     </div>
   )
 }
