@@ -66,10 +66,12 @@ function LogoutIcon() {
 
 export function Sidebar({
   user,
+  authLoading,
   onAccountClick,
   syncAlert,
 }: {
   user: User | null
+  authLoading?: boolean
   onAccountClick: () => void
   syncAlert?: boolean
 }) {
@@ -106,6 +108,7 @@ export function Sidebar({
         </button>
       </div>
       {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
+      {!authLoading && (
       <div className="mt-auto border-t border-coffee-dark/40 p-2">
         <button
           type="button"
@@ -128,6 +131,7 @@ export function Sidebar({
           {user ? <LogoutIcon /> : <LoginIcon />}
         </button>
       </div>
+      )}
     </aside>
   )
 }

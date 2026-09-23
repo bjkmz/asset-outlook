@@ -1,5 +1,6 @@
 import { kindUpdatedAt, setCached } from './cache'
 import { db } from './db'
+import { logOutbound } from './log'
 
 export const ASSETS_TTL_MS = 10 * 24 * 3_600_000
 
@@ -143,6 +144,7 @@ function rootOf(symbol: string): string {
 }
 
 async function postScan(base: string, body: ScanBody): Promise<ScanRow[]> {
+  logOutbound('POST', base)
   const res = await fetch(base, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'User-Agent': UA },

@@ -1,5 +1,6 @@
 import { getCached, setCached } from './cache'
 import { db } from './db'
+import { logOutbound } from './log'
 
 export type YahooRange =
   | '1d'
@@ -136,6 +137,7 @@ async function fetchChart(
   interval: string,
 ): Promise<ChartResult | null> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ysymbol)}?range=${range}&interval=${interval}`
+  logOutbound('GET', url)
   const res = await fetch(url, {
     headers: { 'User-Agent': UA },
     signal: AbortSignal.timeout(15_000),

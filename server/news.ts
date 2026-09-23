@@ -1,5 +1,6 @@
 import { getCached, setCached } from './cache'
 import { db } from './db'
+import { logOutbound } from './log'
 
 export interface NewsArticle {
   id: string
@@ -65,6 +66,7 @@ async function fetchFinnhub(url: string, label: string): Promise<FinnhubRawArtic
   let lastError: Error | null = null
   for (let attempt = 1; attempt <= NEWS_MAX_ATTEMPTS; attempt++) {
     try {
+      if (attempt === 1) logOutbound('GET', url)
       const res = await fetch(url)
       if (res.ok) {
         const data = (await res.json()) as unknown
@@ -117,14 +119,18 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   const toStr = formatDateString(today)
   const fromStr = formatDateString(thirtyDaysAgo)
 
-  // 2. Dual-mechanism fetch with retries (1 initial + 3 retries, 2s delay)
-  const needsTicker = kind === 'stock' || kind === 'crypto'
-  const tickerUrl = `https://finnhub.io/api/v1/company-news?symbol=${cleanSymbol}&from=${fromStr}&to=${toStr}&token=${apiKey}`
+  // 2. Stock ticker + category fetch with retries (1 initial + 3 retries, 2s delay).
+  // company-news?symbol= supports stock tickers only. Non-stocks use
+  // news?category= plus title/summary keyword filtering below.
+  // Commodity continuous suffix "1!" is search-only and never enters a fetch URL.
   const categoryUrl = `https://finnhub.io/api/v1/news?category=${category}&token=${apiKey}`
 
   const [tickerSettled, categorySettled] = await Promise.all([
-    needsTicker
-      ? fetchFinnhub(tickerUrl, 'ticker').then(
+    kind === 'stock'
+      ? fetchFinnhub(
+          `https://finnhub.io/api/v1/company-news?symbol=${cleanSymbol}&from=${fromStr}&to=${toStr}&token=${apiKey}`,
+          'ticker',
+        ).then(
           (v): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'fulfilled', value: v }),
           (e): PromiseSettledResult<FinnhubRawArticle[]> => ({ status: 'rejected', reason: e }),
         )
@@ -141,17 +147,26 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   if (tickerResults === null && categoryResults === null) {
     throw new Error('News fetch failed: all Finnhub requests failed after retries')
   }
-  if (!needsTicker && categoryResults === null) {
+  if (kind !== 'stock' && categoryResults === null) {
     throw new Error('News fetch failed: category request failed after retries')
   }
 
   const safeTickerResults = tickerResults ?? []
   const safeCategoryResults = categoryResults ?? []
+  const hadFailure =
+    tickerSettled.status === 'rejected' || categorySettled.status === 'rejected'
 
-  // 3. Filter Mechanism B results using exclusive name/symbol markers
+  // 3. Filter category results by symbol/name markers in title + summary
   const filterKeywords = new Set<string>()
-  if (cleanSymbol.length >= 2) filterKeywords.add(cleanSymbol.toLowerCase())
-  if (normalized.length >= 2) filterKeywords.add(normalized.toLowerCase())
+  const addKeywordTokens = (value: string) => {
+    const lower = value.toLowerCase()
+    if (lower.length >= 2) filterKeywords.add(lower)
+    for (const part of lower.split(/[^a-z0-9]+/u)) {
+      if (part.length >= 2) filterKeywords.add(part)
+    }
+  }
+  addKeywordTokens(cleanSymbol)
+  addKeywordTokens(normalized)
 
   const noise = new Set([
     'futures',
@@ -174,12 +189,25 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   for (const word of nameWords) {
     filterKeywords.add(word)
   }
+  const keywords = Array.from(filterKeywords).sort()
 
-  const filteredCategoryResults = safeCategoryResults.filter((art) => {
-    if (!art.headline) return false
+  const filteredCategoryResults: FinnhubRawArticle[] = []
+  const matchedKeywords: Array<{ id: number; keyword: string }> = []
+  for (const art of safeCategoryResults) {
+    if (!art.headline) continue
     const text = `${art.headline} ${art.summary || ''}`.toLowerCase()
-    return Array.from(filterKeywords).some((kw) => text.includes(kw))
-  })
+    const matched = keywords.find((kw) => text.includes(kw))
+    if (matched !== undefined) {
+      filteredCategoryResults.push(art)
+      if (matchedKeywords.length < 30) matchedKeywords.push({ id: art.id, keyword: matched })
+    }
+  }
+  console.log(
+    `[news:filter] ${normalized} kind=${kind} category=${category} keywords=[${keywords.join(', ')}] fetched=${safeCategoryResults.length} matched=${filteredCategoryResults.length}`,
+  )
+  for (const m of matchedKeywords) {
+    console.log(`[news:filter] ${normalized} id=${m.id} keyword=${m.keyword}`)
+  }
 
   // 4. Merge, deduplicate, filter by date (<= 30 days)
   const rawMerged = [...safeTickerResults, ...filteredCategoryResults]
@@ -211,7 +239,10 @@ export async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]>
   mergedArticles.sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt))
   const slicedArticles = mergedArticles.slice(0, 30)
 
-  // 6. Cache results
+  // 6. Cache results, skip partial-failure empty to avoid 90-min blackout
+  if (hadFailure && slicedArticles.length === 0) {
+    return slicedArticles
+  }
   try {
     setCached(cacheKey, `news:${normalized}`, JSON.stringify(slicedArticles))
   } catch (err) {

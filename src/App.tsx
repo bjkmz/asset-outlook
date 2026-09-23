@@ -25,6 +25,7 @@ function App() {
     remove,
     resetGuest,
     user,
+    authLoading,
     pendingSync,
     syncDismissed,
     resolveSync,
@@ -57,7 +58,7 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <div className="flex min-h-screen w-full">
-        <Sidebar user={user} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
+        <Sidebar user={user} authLoading={authLoading} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
         <div className="w-full min-w-0 flex-1">
           <Routes>
             <Route
