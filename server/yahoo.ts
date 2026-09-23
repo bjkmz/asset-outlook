@@ -26,18 +26,18 @@ export interface Candle {
 
 export const YAHOO_TTL_MS = 90 * 60_000
 export const AVAIL_TTL_MS = 24 * 3_600_000
-const MAX_BARS = 150
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
 
-// DISTINCT per range; only 1d differs by mode (preview 60m, detail 10m).
+// DISTINCT per range; only 1d differs by mode (preview 60m, detail 5m).
+// 3h/8h/12h are not Yahoo-native steps, rounded down to 1h.
 const TABLE: Record<YahooRange, { range: string; interval: string }> = {
   '1d': { range: '1d', interval: '60m' },
-  '5d': { range: '5d', interval: '60m' },
-  '1Mo': { range: '1mo', interval: '1d' },
-  '3Mo': { range: '3mo', interval: '1d' },
-  '6mo': { range: '6mo', interval: '1d' },
+  '5d': { range: '5d', interval: '30m' },
+  '1Mo': { range: '1mo', interval: '1h' },
+  '3Mo': { range: '3mo', interval: '1h' },
+  '6mo': { range: '6mo', interval: '1h' },
   '1Y': { range: '1y', interval: '1d' },
   '5y': { range: '5y', interval: '1wk' },
   ytd: { range: 'ytd', interval: '1d' },
@@ -163,27 +163,7 @@ function toCandles(r: ChartResult): Candle[] {
   return out
 }
 
-// Even-stride OHLC merge caps output at MAX_BARS without shrinking the window.
-function capBars(bars: Candle[]): Candle[] {
-  if (bars.length <= MAX_BARS) return bars
-  const k = Math.ceil(bars.length / MAX_BARS)
-  const out: Candle[] = []
-  for (let i = 0; i < bars.length; i += k) {
-    const group = bars.slice(i, i + k)
-    out.push({
-      t: group[0].t,
-      o: group[0].o,
-      h: Math.max(...group.map((b) => b.h)),
-      l: Math.min(...group.map((b) => b.l)),
-      c: group[group.length - 1].c,
-      v: group.some((b) => b.v != null)
-        ? group.reduce<number>((s, b) => s + (b.v ?? 0), 0)
-        : null,
-    })
-  }
-  return out
-}
-
+// Full fetched history is returned; the client windows the latest 150.
 export async function getPrices(
   symbol: string,
   range: YahooRange,
@@ -192,13 +172,13 @@ export async function getPrices(
   const { range: yrange, interval } = TABLE[range]
   // Yahoo has no 10m interval; 5m merges to ~144 bars on 24/7 symbols.
   const yinterval = range === '1d' && mode === 'detail' ? '5m' : interval
-  const key = `yahoo:chart:${symbol.toUpperCase()}:${range}:${mode}`
+  const key = `yahoo:chart:v2:${symbol.toUpperCase()}:${range}:${mode}`
   const cached = getCached(key, YAHOO_TTL_MS)
   if (cached) return JSON.parse(cached) as { candles: Candle[]; yahooSymbol: string }
   const candidates = await mapToYahoo(symbol)
   for (const ysymbol of candidates) {
     const result = await fetchChart(ysymbol, yrange, yinterval).catch(() => null)
-    const candles = result ? capBars(toCandles(result)) : []
+    const candles = result ? toCandles(result) : []
     if (candles.length > 0) {
       const payload = { candles, yahooSymbol: ysymbol }
       setCached(key, key, JSON.stringify(payload))

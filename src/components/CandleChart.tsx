@@ -48,7 +48,7 @@ export function CandleChart({
         horzLines: { color: '#f5efe6' },
       },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: !compact },
+      timeScale: { borderVisible: false, timeVisible: !compact, fixLeftEdge: !compact },
     })
     const series = chart.addSeries(CandlestickSeries, {
       upColor: '#16a34a',
@@ -71,10 +71,22 @@ export function CandleChart({
     }
   }, [height, compact])
 
+const VISIBLE_BARS = 150
+
   useEffect(() => {
-    seriesRef.current?.setData(toSeriesData(data))
-    chartRef.current?.timeScale().fitContent()
-  }, [data])
+    const series = seriesRef.current
+    const chart = chartRef.current
+    if (!series || !chart) return
+    series.setData(toSeriesData(data))
+    if (!compact && data.length > VISIBLE_BARS) {
+      // Latest 150 visible; older bars reachable by dragging, earliest clamped left.
+      chart
+        .timeScale()
+        .setVisibleLogicalRange({ from: data.length - VISIBLE_BARS, to: data.length })
+    } else {
+      chart.timeScale().fitContent()
+    }
+  }, [data, compact])
 
   return <div ref={containerRef} className="w-full" />
 }
