@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { CandleChart } from '../components/CandleChart'
 import { DateTimeLine } from '../components/DateTimeLine'
 import { GeometricCover } from '../components/NewsCard'
@@ -52,9 +52,18 @@ export function AssetView({
   }
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-6xl">
       <TitleSpace
         title={
+          <Link to="/" aria-label="Home" className="flex items-center">
+            <img
+              src="/brand.png"
+              alt="Asset Lookout"
+              className="h-[30px] w-auto max-w-full object-contain"
+            />
+          </Link>
+        }
+        subTitle={
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">
               {asset.name} ({displaySymbol(asset.symbol)})
