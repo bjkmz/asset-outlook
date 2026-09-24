@@ -90,18 +90,23 @@ export function Sidebar({
   }
   return (
     <aside className="sticky top-0 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white">
-      <div className="flex items-center justify-between p-2">
-        <Link to="/" aria-label="Home">
+      <div className="relative flex items-stretch gap-2 px-2 py-2">
+        <Link to="/" aria-label="Home" className="flex-1 shrink-0">
           <img
             src="/logo.png"
             alt="Asset Lookout"
-            className="h-10 w-auto object-contain"
+            className="h-full w-full object-contain"
           />
         </Link>
+        <p className="flex-1 self-center text-left font-serif text-lg italic leading-tight">
+          Asset
+          <br />
+          Outlook
+        </p>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/60"
+          className="absolute right-1 top-1 rounded-md px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/60"
           aria-label="Close menu"
         >
           ‹

@@ -8,6 +8,7 @@ export function TitleSpace({
   onAdd,
   onRemove,
   onMissing,
+  hero = false,
 }: {
   title: ReactNode
   symbols: string[]
@@ -15,9 +16,10 @@ export function TitleSpace({
   onAdd: (symbol: string) => void
   onRemove: (symbol: string) => void
   onMissing: (symbol: string) => void
+  hero?: boolean
 }) {
   return (
-    <section className="bg-white">
+    <section className={hero ? 'bg-white md:flex md:min-h-[25vh] md:items-center' : 'bg-white'}>
       <div className="flex w-full items-start gap-4 px-6 py-8 md:py-12">
         <div className="min-w-0">{title}</div>
         <div className="ml-auto mr-6 w-full max-w-sm shrink-0 md:mr-12">

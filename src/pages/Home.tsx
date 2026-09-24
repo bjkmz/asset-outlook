@@ -21,11 +21,12 @@ export function Home({
   return (
     <div>
       <TitleSpace
+        hero
         title={
           <img
             src="/brand.png"
             alt="Asset Lookout"
-            className="h-10 w-auto max-w-full object-contain md:h-12"
+            className="h-[12.5vh] w-auto max-w-full object-contain md:h-[25vh]"
           />
         }
         symbols={symbols}
@@ -34,6 +35,7 @@ export function Home({
         onRemove={onRemove}
         onMissing={onMissing}
       />
+      <div aria-hidden="true" className="hidden md:block md:h-[25vh]" />
       <main className="space-y-8 p-4 md:p-6">
         <DateTimeLine />
         {symbols.length === 0 ? (
