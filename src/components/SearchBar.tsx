@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { displaySymbol } from '../lib/format'
 import type { Asset } from '../types'
@@ -31,11 +31,29 @@ export function SearchBar({
   const [q, setQ] = useState('')
   const [debounced, setDebounced] = useState('')
   const navigate = useNavigate()
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(q.trim()), 250)
     return () => clearTimeout(id)
   }, [q])
+
+  useEffect(() => {
+    const onPointerDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setQ('')
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setQ('')
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [])
 
   const { data, isError, isFetching } = useQuery({
     queryKey: ['assets', debounced],
@@ -52,7 +70,7 @@ export function SearchBar({
   }
 
   return (
-    <div className="relative w-full max-w-md">
+    <div ref={rootRef} className="relative w-full max-w-md">
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
