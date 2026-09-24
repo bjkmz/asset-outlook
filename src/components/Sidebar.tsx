@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import type { User } from 'firebase/auth'
 import { InterestList } from './InterestList'
 import { InterestsModal } from './InterestsModal'
+import { StarButton } from './StarButton'
 
 function AccountIcon() {
   return (
@@ -99,15 +100,15 @@ export function Sidebar({
   }
   return (
     <aside className="sticky top-0 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white">
-      <div className="relative flex items-stretch gap-2 px-2 py-2">
-        <Link to="/" aria-label="Home" className="flex-1 shrink-0">
+      <div className="relative flex items-center gap-2 px-4 py-4">
+        <Link to="/" aria-label="Home" className="flex shrink-0 items-center">
           <img
             src="/logo.png"
             alt="Asset Lookout"
-            className="h-full w-full object-contain"
+            className="h-10 w-auto max-w-full object-contain"
           />
         </Link>
-        <p className="flex-1 self-center text-left font-serif text-lg italic leading-tight">
+        <p className="shrink-0 text-left font-serif text-lg italic leading-tight">
           Asset
           <br />
           Outlook
@@ -122,11 +123,17 @@ export function Sidebar({
         </button>
       </div>
       {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
-      <nav aria-label="Interests" className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+      <nav aria-label="Interests" className="min-h-0 flex-1 overflow-y-auto mt-[10vh] px-2 py-2">
         <p className="px-1.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-stone-500">
           Interests
         </p>
-        <InterestList symbols={symbols.slice(0, 10)} onReorder={onReorder} />
+        <InterestList
+          symbols={symbols.slice(0, 10)}
+          onReorder={onReorder}
+          renderActions={(symbol) => (
+            <StarButton tracked label={symbol} onToggle={() => onRemove(symbol)} />
+          )}
+        />
         {symbols.length > 10 && (
           <button
             type="button"
