@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { InterestList } from './InterestList'
 import { StarButton } from './StarButton'
 
@@ -25,9 +26,9 @@ export function InterestsModal({
   }, [open, onClose])
 
   if (!open) return null
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
@@ -58,6 +59,7 @@ export function InterestsModal({
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
