@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import type { User } from 'firebase/auth'
+import { InterestList } from './InterestList'
+import { InterestsModal } from './InterestsModal'
 
 function AccountIcon() {
   return (
@@ -67,15 +69,22 @@ function LogoutIcon() {
 export function Sidebar({
   user,
   authLoading,
+  symbols,
+  onReorder,
+  onRemove,
   onAccountClick,
   syncAlert,
 }: {
   user: User | null
   authLoading?: boolean
+  symbols: string[]
+  onReorder: (from: number, to: number) => void
+  onRemove: (symbol: string) => void
   onAccountClick: () => void
   syncAlert?: boolean
 }) {
   const [open, setOpen] = useState(true)
+  const [showAll, setShowAll] = useState(false)
   if (!open) {
     return (
       <button
@@ -113,6 +122,21 @@ export function Sidebar({
         </button>
       </div>
       {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
+      <nav aria-label="Interests" className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        <p className="px-1.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-stone-500">
+          Interests
+        </p>
+        <InterestList symbols={symbols.slice(0, 10)} onReorder={onReorder} />
+        {symbols.length > 10 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="mt-1 w-full rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink hover:bg-beige-light"
+          >
+            View all ({symbols.length})
+          </button>
+        )}
+      </nav>
       {!authLoading && (
       <div className="mt-auto border-t border-coffee-dark/40 p-2">
         <button
@@ -137,6 +161,13 @@ export function Sidebar({
         </button>
       </div>
       )}
+      <InterestsModal
+        open={showAll}
+        symbols={symbols}
+        onReorder={onReorder}
+        onRemove={onRemove}
+        onClose={() => setShowAll(false)}
+      />
     </aside>
   )
 }

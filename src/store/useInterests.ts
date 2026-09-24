@@ -202,10 +202,26 @@ export function useInterests() {
     [symbols, user],
   )
 
+  const reorder = useCallback(
+    (from: number, to: number) => {
+      if (from === to || from < 0 || to < 0 || from >= symbols.length || to >= symbols.length) return
+      const next = [...symbols]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      setSymbols(next)
+      saveLocal(next)
+      // No cloud writes while the sync choice is outstanding.
+      if (user && db && !pendingSyncRef.current)
+        void pushCloud(user.uid, next).catch((e) => console.warn('[interests] reorder failed:', e))
+    },
+    [symbols, user],
+  )
+
   return {
     symbols,
     add,
     remove,
+    reorder,
     resetGuest,
     user,
     authLoading,

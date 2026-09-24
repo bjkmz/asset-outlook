@@ -23,6 +23,7 @@ function App() {
     symbols,
     add,
     remove,
+    reorder,
     resetGuest,
     user,
     authLoading,
@@ -58,7 +59,7 @@ function App() {
   return (
     <div className="min-h-screen bg-white">
       <div className="flex min-h-screen w-full">
-        <Sidebar user={user} authLoading={authLoading} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
+        <Sidebar user={user} authLoading={authLoading} symbols={symbols} onReorder={reorder} onRemove={remove} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
         <div className="w-full min-w-0 flex-1">
           <Routes>
             <Route
