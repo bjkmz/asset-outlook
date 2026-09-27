@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 import { db } from './db'
+import { fetchInsightsForSymbol, GeminiKeyMissingError, InsightsRateLimitedError } from './insights'
 import { fetchNewsForSymbol, FinnhubKeyMissingError } from './news'
 import {
   COMMODITY_SEGMENTS,
@@ -106,6 +107,32 @@ export const app = new Elysia()
       return status(502, { error: `News fetch failed: ${(err as Error).message}` })
     }
   })
+  .post('/api/insights/:symbol', async ({ params, request, server, status }) => {
+    const symbol = params.symbol.trim().toUpperCase()
+    if (!/^[A-Z0-9.\-=^!]{1,20}$/.test(symbol)) {
+      return status(400, { error: 'Invalid symbol' })
+    }
+    const ip =
+      server?.requestIP(request)?.address ??
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      'unknown'
+    try {
+      return await fetchInsightsForSymbol(symbol, ip)
+    } catch (err) {
+      if (err instanceof GeminiKeyMissingError) {
+        return status(401, { error: err.message })
+      }
+      if (err instanceof FinnhubKeyMissingError) {
+        return status(401, { error: err.message })
+      }
+      if (err instanceof InsightsRateLimitedError) {
+        return status(429, { error: err.message })
+      }
+      return status(502, { error: `Insights failed: ${(err as Error).message}` })
+    }
+  })
   .listen(3000)
+
+console.log('API listening on http://localhost:3000')
 
 export type App = typeof app

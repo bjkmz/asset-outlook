@@ -6,6 +6,7 @@ import { GeometricCover } from '../components/NewsCard'
 import { StarButton } from '../components/StarButton'
 import { TitleSpace } from '../components/TitleSpace'
 import { useNews } from '../hooks/useNews'
+import { useInsights } from '../hooks/useInsights'
 import { usePrices } from '../hooks/usePrices'
 import { useResolvedAssets } from '../hooks/useResolvedAssets'
 import { displaySymbol } from '../lib/format'
@@ -45,6 +46,7 @@ export function AssetView({
     range === '1d' ? 'detail' : 'preview',
   )
   const { data: news = [], error: newsError, isLoading: newsLoading } = useNews(symbol)
+  const insights = useInsights(symbol)
   const candles = data?.candles ?? []
 
   if (!symbol) {
@@ -115,7 +117,90 @@ export function AssetView({
 
       <DateTimeLine />
       <section className="bg-white py-2">
-        <h2 className="text-lg font-bold">NEWS</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-bold">NEWS</h2>
+          <button
+            type="button"
+            onClick={() => insights.mutate()}
+            disabled={news.length === 0 || !!newsError || insights.isPending}
+            className="rounded-md bg-ink px-3 py-1.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {insights.isPending
+              ? 'Analyzing…'
+              : insights.data
+                ? 'Refresh Insights'
+                : 'Get Insights'}
+          </button>
+        </div>
+        {insights.isError && (
+          <div className="mt-3 rounded-lg bg-stone-50 p-4 text-center">
+            <p className="text-sm text-stone-500">
+              {insights.error.message.includes('GEMINI_API_KEY')
+                ? 'Configure GEMINI_API_KEY in .env file to enable AI insights.'
+                : insights.error.message}
+            </p>
+          </div>
+        )}
+        {insights.data && (
+          <div className="mt-3 rounded-lg bg-beige-light/60 p-4">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-ink">
+                AI Insights · {insights.data.aggregate.toUpperCase()}
+              </p>
+              {insights.data.cached && (
+                <span className="rounded bg-coffee/30 px-1.5 py-0.5 text-[10px] font-bold text-ink">
+                  CACHED
+                </span>
+              )}
+              <span className="text-[11px] text-stone-400">
+                {insights.data.articleCount} articles · {insights.data.model}
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-stone-700">{insights.data.overview}</p>
+            <div className="mt-3 space-y-1.5">
+              {insights.data.sentiments.map((s) => (
+                <div key={s.title} className="flex items-start gap-2 text-sm">
+                  <span
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                      s.label === 'bullish'
+                        ? 'bg-green-600'
+                        : s.label === 'bearish'
+                          ? 'bg-red-600'
+                          : 'bg-stone-400'
+                    }`}
+                  />
+                  <p className="text-stone-700">
+                    <span className="font-semibold">{s.title}</span>
+                    {s.note ? ` — ${s.note}` : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              {(
+                [
+                  ['Drivers', insights.data.drivers],
+                  ['Risks', insights.data.risks],
+                  ['Watch', insights.data.watch],
+                ] as const
+              ).map(([label, items]) => (
+                <div key={label}>
+                  <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
+                    {label}
+                  </p>
+                  <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-stone-700">
+                    {items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] text-stone-400">
+              Informational summary of recent coverage, not financial advice.
+            </p>
+          </div>
+        )}
         {newsError ? (
           <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center">
             <p className="text-sm text-stone-500">

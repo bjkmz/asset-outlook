@@ -26,6 +26,26 @@ export interface NewsArticle {
   source?: string
 }
 
+export type SentimentLabel = 'bullish' | 'bearish' | 'neutral'
+
+export interface InsightSentiment {
+  title: string
+  label: SentimentLabel
+  note: string
+}
+
+export interface Insights {
+  overview: string
+  sentiments: InsightSentiment[]
+  aggregate: SentimentLabel | 'mixed'
+  drivers: string[]
+  risks: string[]
+  watch: string[]
+  model: string
+  articleCount: number
+  cached: boolean
+}
+
 export type RangeKey =
   | '1d'
   | '5d'
