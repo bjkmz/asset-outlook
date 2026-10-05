@@ -25,7 +25,7 @@ export function Home({
         title={
           <img
             src="/brand.png"
-            alt="Asset Lookout"
+            alt="Asset Outlook"
             className="h-[12.5vh] w-auto max-w-full object-contain md:h-[25vh]"
           />
         }

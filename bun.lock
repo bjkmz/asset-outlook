@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "asset-lookout",
+      "name": "asset-outlook",
       "dependencies": {
         "@tanstack/react-query": "^5.62.0",
         "elysia": "^1.4.30",

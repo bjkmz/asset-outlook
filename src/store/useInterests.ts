@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { takeLastAuthMode, useAuthUser } from '../lib/auth'
 import { db, isFirebaseConfigured } from '../lib/firebase'
 
-const KEY = 'asset-lookout:interests'
+const KEY = 'asset-outlook:interests'
 const DEFAULTS = ['AAPL', 'USDJPY', 'SPX', 'GC1!', 'BTCUSD']
 const DOC_ID = 'default'
 

@@ -104,7 +104,7 @@ export function Sidebar({
         <Link to="/" aria-label="Home" className="flex shrink-0 items-center">
           <img
             src="/logo.png"
-            alt="Asset Lookout"
+            alt="Asset Outlook"
             className="h-10 w-auto max-w-full object-contain"
           />
         </Link>

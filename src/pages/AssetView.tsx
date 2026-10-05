@@ -58,7 +58,7 @@ export function AssetView({
           <Link to="/" aria-label="Home" className="flex items-center">
             <img
               src="/brand.png"
-              alt="Asset Lookout"
+              alt="Asset Outlook"
               className="h-[30px] w-auto max-w-full object-contain"
             />
           </Link>

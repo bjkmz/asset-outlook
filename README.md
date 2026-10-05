@@ -1,4 +1,4 @@
-# Asset Lookout
+# Asset Outlook
 
 Short description: local asset tracker with a Vite + React frontend and a Bun + Elysia API. This guide covers local setup only.
 
@@ -82,7 +82,7 @@ asset-/
 - Frontend expects the API at `/api`. Vite proxies `/api` to `http://localhost:3000` during development. Without `bun run server`, charts show a "start the backend" message and search reports unavailable.
 - First search or price request triggers TradingView / Yahoo syncs, so it can take a few seconds.
 - SQLite file is created at `data/cache.db` on first API run.
-- Saved symbols persist in browser `localStorage` under `asset-lookout:interests` for guests. Signed-in users sync `users/{uid}/watchlists/default` in Firestore.
+- Saved symbols persist in browser `localStorage` under `asset-outlook:interests` for guests. Signed-in users sync `users/{uid}/watchlists/default` in Firestore.
 - News is live from Finnhub. Cache TTL is 90 minutes. Articles older than 30 days are filtered out. Each Finnhub call uses 1 initial attempt plus 3 retries with 2s delay. Total failure returns 502, shows an error state, and writes no cache. Client uses `retry:false` with 60-minute `staleTime`.
 
 ## Troubleshooting

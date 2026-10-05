@@ -317,7 +317,7 @@ export function AuthModal({
             <p className="mt-1 text-xs text-stone-500">
               {mode === 'login'
                 ? 'Welcome back! Sign in to sync your watchlist from the cloud. If this device tracks its own list, you will choose which one to keep.'
-                : 'Join Asset Lookout! Create an account to save your watchlist to the cloud and access it anywhere — we’ll bring over what you’ve already tracked on this device.'}
+                : 'Join Asset Outlook! Create an account to save your watchlist to the cloud and access it anywhere — we’ll bring over what you’ve already tracked on this device.'}
             </p>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
