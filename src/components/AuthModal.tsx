@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { User } from 'firebase/auth'
-import { login, logout, register, setLastAuthMode, takeLastAuthMode } from '../lib/auth'
-import { isFirebaseConfigured } from '../lib/firebase'
+import { deleteDoc, doc } from 'firebase/firestore'
+import {
+  deleteAccount,
+  login,
+  logout,
+  register,
+  sendResetEmail,
+  sendVerificationEmail,
+  setLastAuthMode,
+  takeLastAuthMode,
+  updateDisplayName,
+} from '../lib/auth'
+import { db, isFirebaseConfigured } from '../lib/firebase'
 import type { PendingSync } from '../store/useInterests'
 
 /** Discreet messages: no raw Firebase text, no user-enumeration via distinct errors. */
@@ -28,6 +39,17 @@ function friendlyAuthError(err: unknown, mode: 'login' | 'signup'): string {
   return 'Could not create account. Check details and try again.'
 }
 
+function friendlyProfileError(err: unknown): string {
+  const c = (err as { code?: unknown })?.code
+  const code = typeof c === 'string' ? c : ''
+  if (code === 'auth/too-many-requests') return 'Too many attempts. Wait a moment and try again.'
+  if (code === 'auth/network-request-failed') return 'Network issue. Check connection and try again.'
+  if (code === 'auth/requires-recent-login') return 'Session expired. Enter your password to confirm.'
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password')
+    return 'Incorrect password. Please try again.'
+  return 'Something went wrong. Try again.'
+}
+
 export function AuthModal({
   open,
   onClose,
@@ -39,6 +61,7 @@ export function AuthModal({
   onDismissSync,
   onReopenSync,
   cloudReady,
+  onRefreshUser,
 }: {
   open: boolean
   onClose: () => void
@@ -50,16 +73,35 @@ export function AuthModal({
   onDismissSync: () => void
   onReopenSync: () => void
   cloudReady: boolean
+  onRefreshUser?: () => Promise<unknown>
 }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [signupName, setSignupName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [awaitingSync, setAwaitingSync] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
+  const [forgotBusy, setForgotBusy] = useState(false)
   const [cooldownLeft, setCooldownLeft] = useState(0)
   const cooldownEnds = useRef(0)
   const cooldownTimer = useRef<number | null>(null)
+
+  // Profile states (signed-in view)
+  const [nameField, setNameField] = useState('')
+  const [nameBusy, setNameBusy] = useState(false)
+  const [nameMsg, setNameMsg] = useState<string | null>(null)
+  const [verifyBusy, setVerifyBusy] = useState(false)
+  const [verifySent, setVerifySent] = useState(false)
+  const [verifyMsg, setVerifyMsg] = useState<string | null>(null)
+  const [checkingVerify, setCheckingVerify] = useState(false)
+  const [resetBusy, setResetBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteBusy, setDeleteBusy] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   function clearCooldown() {
     if (cooldownTimer.current !== null) {
@@ -93,6 +135,15 @@ export function AuthModal({
     setAwaitingSync(false)
     setEmail('')
     setPassword('')
+    setSignupName('')
+    setForgotSent(false)
+    setNameMsg(null)
+    setVerifyMsg(null)
+    setVerifySent(false)
+    setResetSent(false)
+    setDeleteConfirm(false)
+    setDeletePassword('')
+    setDeleteError(null)
     onClose()
   }
 
@@ -103,11 +154,18 @@ export function AuthModal({
     setPassword('')
     setError(null)
     setBusy(false)
+    setForgotSent(false)
   }
 
   const permanent = !!user
+  const verified = !!user?.emailVerified
   // Fresh sign-in with a customized device list: ask before touching either side.
   const showInquiry = permanent && pendingSync !== null && !syncDismissed
+
+  // Keep the name field in sync with the account (modal open or displayName change).
+  useEffect(() => {
+    if (open && user) setNameField(user.displayName ?? '')
+  }, [open, user, user?.displayName])
 
   // After a fresh login, close once the first snapshot decided the sync:
   // silent pull/push when ready with no inquiry. Auth state alone is not
@@ -120,6 +178,15 @@ export function AuthModal({
     // handleClose identity changes per render; the guard above keeps this effect idle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitingSync, user, cloudReady, pendingSync])
+
+  // Soft gate: unverified users never become cloudReady. Stop waiting and
+  // show the account view with the verification banner instead.
+  useEffect(() => {
+    if (awaitingSync && user && !user.emailVerified) {
+      setAwaitingSync(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingSync, user, user?.emailVerified])
 
   // Snapshot never arrived (offline or listen failure): stop waiting after
   // 10s and keep the device list. A late snapshot still raises the inquiry
@@ -151,7 +218,7 @@ export function AuthModal({
     }
     setBusy(true)
     try {
-      // New signups push the device list to the cloud;
+      // New signups push the device list to the cloud once verified;
       // sign-ins pull the cloud list, or ask when customized (see useInterests).
       if (mode === 'login') {
         setLastAuthMode('login')
@@ -160,7 +227,21 @@ export function AuthModal({
         setAwaitingSync(true)
       } else {
         setLastAuthMode('signup')
-        await register(cleanEmail, password)
+        const cred = await register(cleanEmail, password)
+        const cleanName = signupName.trim().slice(0, 40)
+        if (cleanName && cred.user) {
+          try {
+            await updateDisplayName(cleanName)
+          } catch {
+            // Name is optional; account already created.
+          }
+        }
+        try {
+          await sendVerificationEmail()
+        } catch {
+          // Verification send failure should not block signup.
+        }
+        await onRefreshUser?.()
         handleClose()
       }
     } catch (err) {
@@ -171,6 +252,91 @@ export function AuthModal({
       if (code === 'auth/too-many-requests') startCooldown(30)
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function handleForgotPassword() {
+    setError(null)
+    const cleanEmail = email.trim()
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Enter your email above first.')
+      return
+    }
+    setForgotBusy(true)
+    try {
+      await sendResetEmail(cleanEmail)
+      setForgotSent(true)
+    } catch {
+      // Avoid user enumeration: show the same confirmation either way.
+      setForgotSent(true)
+    } finally {
+      setForgotBusy(false)
+    }
+  }
+
+  async function handleSaveName() {
+    setNameMsg(null)
+    const clean = nameField.trim()
+    if (!clean) {
+      setNameMsg('Enter a name.')
+      return
+    }
+    if (clean.length > 20) {
+      setNameMsg('Keep the name under 20 characters.')
+      return
+    }
+    setNameBusy(true)
+    try {
+      await updateDisplayName(clean)
+      await onRefreshUser?.()
+      setNameMsg('Name saved.')
+    } catch (err) {
+      setNameMsg(friendlyProfileError(err))
+    } finally {
+      setNameBusy(false)
+    }
+  }
+
+  async function handleResendVerification() {
+    if (cooldownLeft > 0) return
+    setVerifyMsg(null)
+    setVerifyBusy(true)
+    try {
+      await sendVerificationEmail()
+      setVerifySent(true)
+      startCooldown(30)
+    } catch (err) {
+      const code = (err as { code?: unknown })?.code
+      if (code === 'auth/too-many-requests') startCooldown(30)
+      setVerifyMsg(friendlyProfileError(err))
+    } finally {
+      setVerifyBusy(false)
+    }
+  }
+
+  async function handleCheckVerification() {
+    setVerifyMsg(null)
+    setCheckingVerify(true)
+    try {
+      await onRefreshUser?.()
+    } catch {
+      setVerifyMsg('Could not refresh status. Try again.')
+    } finally {
+      setCheckingVerify(false)
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!user?.email) return
+    setResetBusy(true)
+    try {
+      await sendResetEmail(user.email)
+      setResetSent(true)
+    } catch {
+      // Same confirmation either way to avoid enumeration.
+      setResetSent(true)
+    } finally {
+      setResetBusy(false)
     }
   }
 
@@ -189,6 +355,28 @@ export function AuthModal({
     }
   }
 
+  async function handleDelete() {
+    if (!user) return
+    setDeleteError(null)
+    setDeleteBusy(true)
+    try {
+      if (db) {
+        try {
+          await deleteDoc(doc(db, 'users', user.uid, 'watchlists', 'default'))
+        } catch {
+          // Missing doc or offline; still delete the account.
+        }
+      }
+      await deleteAccount(deletePassword || undefined)
+      onBeforeLogout?.()
+      handleClose()
+    } catch (err) {
+      setDeleteError(friendlyProfileError(err))
+    } finally {
+      setDeleteBusy(false)
+    }
+  }
+
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -198,7 +386,7 @@ export function AuthModal({
       aria-label="Account"
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl"
+        className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {!isFirebaseConfigured ? (
@@ -258,12 +446,100 @@ export function AuthModal({
           <>
             <h2 className="text-base font-bold">Account</h2>
             <p className="mt-2 text-sm text-stone-600">
-              Signed in as <span className="font-semibold text-ink">{user?.email}</span>
+              Signed in as <span className="font-semibold text-ink">{user?.email}</span>{' '}
+              {verified ? (
+                <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                  Verified
+                </span>
+              ) : (
+                <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                  Unverified
+                </span>
+              )}
             </p>
-            <p className="mt-1 text-xs text-stone-500">
-              Watchlist syncs to this account on Home page.
-            </p>
-            {pendingSync && (
+
+            {!verified && (
+              <div className="mt-3 rounded-xl border border-amber-500/60 bg-amber-50 p-3">
+                <p className="text-xs font-semibold text-ink">Verify your email to enable cloud sync.</p>
+                <p className="mt-1 text-xs text-stone-600">
+                  Check your inbox for the verification link. The watchlist stays on this device until verified.
+                </p>
+                {verifyMsg && <p className="mt-1 text-xs text-red-600">{verifyMsg}</p>}
+                {verifySent && !verifyMsg && (
+                  <p className="mt-1 text-xs text-green-700">Verification email sent. Check your inbox.</p>
+                )}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={verifyBusy || cooldownLeft > 0}
+                    className="flex-1 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                  >
+                    {verifyBusy
+                      ? 'Sending…'
+                      : cooldownLeft > 0
+                        ? `Resend in ${cooldownLeft}s`
+                        : 'Resend email'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCheckVerification}
+                    disabled={checkingVerify}
+                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+                  >
+                    {checkingVerify ? 'Checking…' : "I've verified"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4">
+              <label htmlFor="profile-name" className="text-xs font-semibold text-ink">
+                Name
+              </label>
+              <div className="mt-1 flex gap-2">
+                <input
+                  id="profile-name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Your name"
+                  maxLength={40}
+                  value={nameField}
+                  onChange={(e) => setNameField(e.target.value)}
+                  className="min-w-0 flex-1 rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveName}
+                  disabled={nameBusy}
+                  className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {nameBusy ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+              {nameMsg && <p className="mt-1 text-xs text-stone-600">{nameMsg}</p>}
+            </div>
+
+            <div className="mt-3">
+              <p className="text-xs text-stone-500">
+                Watchlist {verified ? 'syncs to this account.' : 'sync is paused until email is verified.'}
+              </p>
+              <button
+                type="button"
+                onClick={handleResetPassword}
+                disabled={resetBusy}
+                className="mt-2 w-full rounded-full border border-coffee-dark/40 bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+              >
+                {resetBusy ? 'Sending…' : 'Reset password'}
+              </button>
+              {resetSent && (
+                <p className="mt-1 text-xs text-stone-600">
+                  If the account exists, a reset email is on its way.
+                </p>
+              )}
+            </div>
+
+            {pendingSync && verified && (
               <button
                 type="button"
                 onClick={onReopenSync}
@@ -281,6 +557,66 @@ export function AuthModal({
             >
               {busy ? 'Signing out…' : 'Sign out'}
             </button>
+
+            {!deleteConfirm ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteError(null)
+                  setDeleteConfirm(true)
+                }}
+                className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+              >
+                Delete account
+              </button>
+            ) : (
+              <div
+                className="mt-3 rounded-xl border border-red-500/60 bg-red-50 p-3"
+                role="alertdialog"
+                aria-modal="true"
+                aria-label="Delete account confirmation"
+              >
+                <p className="text-sm font-bold text-red-700">Delete account? This cannot be undone.</p>
+                <p className="mt-1 text-xs text-stone-600">
+                  This permanently removes your account and cloud watchlist. This device resets to defaults.
+                </p>
+                <label htmlFor="delete-password" className="mt-2 block text-xs font-semibold text-ink">
+                  Password (required if session is old)
+                </label>
+                <input
+                  id="delete-password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Enter password to confirm"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-red-500/40 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-red-500"
+                />
+                {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirm(false)
+                      setDeletePassword('')
+                      setDeleteError(null)
+                    }}
+                    disabled={deleteBusy}
+                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleteBusy}
+                    className="flex-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {deleteBusy ? 'Deleting…' : 'Permanently delete'}
+                  </button>
+                </div>
+              </div>
+            )}
             <button
               type="button"
               onClick={handleClose}
@@ -322,6 +658,17 @@ export function AuthModal({
             </p>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+              {mode === 'signup' && (
+                <input
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Name (optional)"
+                  maxLength={40}
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  className="w-full rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                />
+              )}
               <input
                 type="email"
                 autoComplete="email"
@@ -338,6 +685,21 @@ export function AuthModal({
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
               />
+              {mode === 'login' && (
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={forgotBusy}
+                    className="text-xs font-semibold text-ink underline hover:opacity-80 disabled:opacity-50"
+                  >
+                    {forgotBusy ? 'Sending…' : 'Forgot password?'}
+                  </button>
+                  {forgotSent && (
+                    <span className="text-xs text-stone-500">Reset email sent if account exists.</span>
+                  )}
+                </div>
+              )}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <button
                 type="submit"

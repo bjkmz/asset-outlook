@@ -61,7 +61,7 @@ async function pushCloud(uid: string, symbols: string[]) {
  * API is backwards compatible with the previous localStorage-only hook.
  */
 export function useInterests() {
-  const { user, authLoading } = useAuthUser()
+  const { user, authLoading, refreshUser } = useAuthUser()
   const [symbols, setSymbols] = useState<string[]>(loadLocal)
   const [cloudReady, setCloudReady] = useState(false)
   const [pendingSync, setPendingSync] = useState<PendingSync | null>(null)
@@ -89,9 +89,10 @@ export function useInterests() {
     pendingSyncRef.current = null
   }, [symbols])
 
-  // Live-subscribe to cloud watchlist once signed in. Guests stay local-only.
+  // Live-subscribe to cloud watchlist once signed in with a verified email.
+  // Soft gate: unverified users stay local-only until they verify.
   useEffect(() => {
-    if (!isFirebaseConfigured || !db || !user) {
+    if (!isFirebaseConfigured || !db || !user || !user.emailVerified) {
       setCloudReady(false)
       return
     }
@@ -145,7 +146,8 @@ export function useInterests() {
       },
       (err) => console.warn('[interests] snapshot failed:', err),
     )
-  }, [user])
+    // Re-subscribe once emailVerified flips after "I've verified" refresh.
+  }, [user, user?.emailVerified])
 
   const resolveSync = useCallback(
     (choice: 'pull' | 'push') => {
@@ -183,8 +185,8 @@ export function useInterests() {
       const next = [...symbols, symbol]
       setSymbols(next)
       saveLocal(next)
-      // No cloud writes while the sync choice is outstanding.
-      if (user && db && !pendingSyncRef.current)
+      // No cloud writes while unverified or while the sync choice is outstanding.
+      if (user?.emailVerified && db && !pendingSyncRef.current)
         void pushCloud(user.uid, next).catch((e) => console.warn('[interests] add failed:', e))
     },
     [symbols, user],
@@ -195,8 +197,8 @@ export function useInterests() {
       const next = symbols.filter((s) => s !== symbol)
       setSymbols(next)
       saveLocal(next)
-      // No cloud writes while the sync choice is outstanding.
-      if (user && db && !pendingSyncRef.current)
+      // No cloud writes while unverified or while the sync choice is outstanding.
+      if (user?.emailVerified && db && !pendingSyncRef.current)
         void pushCloud(user.uid, next).catch((e) => console.warn('[interests] remove failed:', e))
     },
     [symbols, user],
@@ -210,8 +212,8 @@ export function useInterests() {
       next.splice(to, 0, moved)
       setSymbols(next)
       saveLocal(next)
-      // No cloud writes while the sync choice is outstanding.
-      if (user && db && !pendingSyncRef.current)
+      // No cloud writes while unverified or while the sync choice is outstanding.
+      if (user?.emailVerified && db && !pendingSyncRef.current)
         void pushCloud(user.uid, next).catch((e) => console.warn('[interests] reorder failed:', e))
     },
     [symbols, user],
@@ -225,6 +227,7 @@ export function useInterests() {
     resetGuest,
     user,
     authLoading,
+    refreshUser,
     cloudReady,
     pendingSync,
     syncDismissed,

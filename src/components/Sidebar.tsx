@@ -197,12 +197,12 @@ export function Sidebar({
           type="button"
           onClick={onAccountClick}
           aria-label="Account"
-          title={user?.email ?? 'Guest'}
+          title={user?.displayName || user?.email || 'Guest'}
           className="relative flex w-full items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-beige-light"
         >
           <AccountIcon />
           <span className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-ink">
-            {user?.email ?? 'Guest'}
+            {user?.displayName || user?.email || 'Guest'}
           </span>
           {syncAlert && (
             <span

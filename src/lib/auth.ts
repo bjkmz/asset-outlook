@@ -1,8 +1,14 @@
 import {
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
+  onAuthStateChanged,
 } from 'firebase/auth'
 import { useEffect, useState } from 'react'
 import { auth, isFirebaseConfigured } from './firebase'
@@ -20,6 +26,45 @@ export function login(email: string, password: string) {
 export function logout() {
   if (!auth) return Promise.resolve()
   return signOut(auth)
+}
+
+export function updateDisplayName(name: string) {
+  if (!auth?.currentUser) throw new Error('Not signed in')
+  return updateProfile(auth.currentUser, { displayName: name })
+}
+
+export function sendVerificationEmail() {
+  if (!auth?.currentUser) throw new Error('Not signed in')
+  return sendEmailVerification(auth.currentUser)
+}
+
+export async function reloadUser() {
+  if (!auth?.currentUser) return null
+  await auth.currentUser.reload()
+  return auth.currentUser
+}
+
+export function sendResetEmail(email: string) {
+  if (!auth) throw new Error('Firebase not configured')
+  return sendPasswordResetEmail(auth, email)
+}
+
+export async function deleteAccount(password?: string) {
+  const user = auth?.currentUser
+  if (!user) throw new Error('Not signed in')
+  try {
+    await deleteUser(user)
+  } catch (err) {
+    const code = (err as { code?: unknown })?.code
+    if (code === 'auth/requires-recent-login') {
+      if (!password || !user.email) throw err
+      const cred = EmailAuthProvider.credential(user.email, password)
+      await reauthenticateWithCredential(user, cred)
+      await deleteUser(user)
+      return
+    }
+    throw err
+  }
 }
 
 /**
@@ -43,6 +88,7 @@ export function takeLastAuthMode(): 'login' | 'signup' | null {
 export function useAuthUser() {
   const [user, setUser] = useState(auth?.currentUser ?? null)
   const [loading, setLoading] = useState(() => isFirebaseConfigured && !!auth)
+  const [, setTick] = useState(0)
 
   useEffect(() => {
     if (!auth) {
@@ -55,5 +101,14 @@ export function useAuthUser() {
     })
   }, [])
 
-  return { user, authLoading: loading }
+  async function refresh() {
+    if (!auth?.currentUser) return null
+    await auth.currentUser.reload()
+    // Same object reference mutates; bump to force re-render with fresh emailVerified/displayName.
+    setUser(auth.currentUser)
+    setTick((t) => t + 1)
+    return auth.currentUser
+  }
+
+  return { user, authLoading: loading, refreshUser: refresh }
 }

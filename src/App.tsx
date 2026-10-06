@@ -27,6 +27,7 @@ function App() {
     resetGuest,
     user,
     authLoading,
+    refreshUser,
     pendingSync,
     syncDismissed,
     resolveSync,
@@ -101,6 +102,7 @@ function App() {
         onDismissSync={dismissSync}
         onReopenSync={reopenSync}
         cloudReady={cloudReady}
+        onRefreshUser={refreshUser}
       />
     </div>
   )
