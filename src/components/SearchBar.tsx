@@ -75,7 +75,7 @@ export function SearchBar({
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search assets (AAPL, BTC, Gold...)"
-        className="w-full rounded-full border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+        className="w-full rounded-full border border-coffee-dark bg-beige-light/60 px-4 py-2 text-sm text-ink shadow-sm outline-none placeholder:text-stone-400 focus:border-coffee-dark focus:bg-white"
       />
       {q.trim() && (
         <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-coffee-dark/40 bg-white shadow-lg">

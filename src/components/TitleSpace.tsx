@@ -21,10 +21,10 @@ export function TitleSpace({
   hero?: boolean
 }) {
   return (
-    <section className={hero ? 'bg-white md:flex md:min-h-[25vh] md:items-center' : 'bg-white'}>
-      <div className="flex w-full items-start gap-4 px-6 py-8 md:py-12">
-        <div className="flex min-w-0 items-center">{title}</div>
-        <div className="ml-auto mr-6 w-full max-w-sm shrink-0 md:mr-12">
+    <section className={hero ? 'bg-white md:flex md:min-h-[20vh] md:items-center' : 'bg-white'}>
+      <div className="flex w-full flex-row items-center gap-3 px-4 py-5 md:gap-4 md:px-6 md:py-6">
+        <div className="min-w-0 shrink-0">{title}</div>
+        <div className="ml-auto w-full min-w-0 max-w-56 flex-1 md:mr-12 md:max-w-sm md:flex-none">
           <SearchBar
             symbols={symbols}
             pending={pending}

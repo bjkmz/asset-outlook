@@ -26,7 +26,7 @@ export function Home({
           <img
             src="/brand.png"
             alt="Asset Outlook"
-            className="h-[12.5vh] w-auto max-w-full object-contain md:h-[25vh]"
+            className="h-12 w-auto max-w-[44vw] object-contain md:h-[14vh] md:max-w-full"
           />
         }
         symbols={symbols}
@@ -35,7 +35,7 @@ export function Home({
         onRemove={onRemove}
         onMissing={onMissing}
       />
-      <div aria-hidden="true" className="hidden md:block md:h-[25vh]" />
+      <div aria-hidden="true" className="h-12 md:h-[13vh]" />
       <main className="space-y-8 p-4 md:p-6">
         <DateTimeLine />
         {symbols.length === 0 ? (

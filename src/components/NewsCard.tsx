@@ -45,7 +45,7 @@ export function NewsCard({ article }: { article: NewsArticle }) {
       href={article.url}
       target="_blank"
       rel="noreferrer"
-      className="group block bg-white transition hover:bg-beige-light/50"
+      className="group block min-w-0 bg-white transition hover:bg-beige-light/50"
     >
       <div className="relative h-24 w-full overflow-hidden bg-beige">
         {article.image && !imgError ? (

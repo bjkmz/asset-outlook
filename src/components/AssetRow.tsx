@@ -34,7 +34,7 @@ export function AssetRow({
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Link
           to={`/asset/${asset.symbol}`}
-          className="text-lg font-bold text-ink hover:underline"
+          className="min-w-0 text-lg font-bold text-ink hover:underline"
         >
           {asset.name} ({displaySymbol(asset.symbol)})
         </Link>
@@ -53,15 +53,17 @@ export function AssetRow({
           <HomeMetricsStrip values={metrics?.values} />
         </span>
       </div>
-      <div className="mt-3 grid gap-4 md:grid-cols-[280px_1fr]">
+      <div className="mt-3 grid gap-4 [grid-template-columns:minmax(0,1fr)] md:grid-cols-[280px_1fr]">
         {candles.length > 0 ? (
-          <CandleChart data={candles} height={140} compact />
+          <div className="min-w-0">
+            <CandleChart data={candles} height={140} compact />
+          </div>
         ) : (
           <p className="py-10 text-center text-xs text-stone-400">
             No price data. Start the backend for live charts.
           </p>
         )}
-        <div>
+        <div className="min-w-0">
           {newsError ? (
             <div className="flex h-full min-h-[120px] items-center justify-center rounded-lg bg-stone-50 p-4 text-center">
               <p className="text-xs text-stone-500">
@@ -71,7 +73,7 @@ export function AssetRow({
               </p>
             </div>
           ) : newsLoading ? (
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3 lg:grid-cols-4">
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} className="animate-pulse bg-stone-100 p-2">
                   <div className="h-24 bg-stone-200" />
@@ -81,7 +83,7 @@ export function AssetRow({
               ))}
             </div>
           ) : displayArticles.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3 lg:grid-cols-4">
               {displayArticles.map((a) => (
                 <NewsCard key={a.id} article={a} />
               ))}
