@@ -12,6 +12,7 @@ import {
   type CommoditySegment,
 } from './tv'
 import { checkAvailable, getPrices, YAHOO_RANGES, type YahooMode, type YahooRange } from './yahoo'
+import { getMetrics } from './metrics'
 
 const VALID: AssetKind[] = [...KINDS]
 
@@ -84,6 +85,17 @@ export const app = new Elysia()
       return status(400, { error: 'Invalid mode' })
     }
     return getPrices(params.symbol, range, mode)
+  })
+  .get('/api/metrics/:symbol', async ({ params, query, status }) => {
+    const range = query.range as YahooRange | undefined
+    if (!range || !YAHOO_RANGES.includes(range)) {
+      return status(400, { error: 'Invalid range' })
+    }
+    try {
+      return await getMetrics(params.symbol, range)
+    } catch (err) {
+      return status(502, { error: `Metrics fetch failed: ${(err as Error).message}` })
+    }
   })
   .get('/api/availability/:symbol', async ({ params }) => {
     try {

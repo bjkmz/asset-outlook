@@ -3,8 +3,10 @@ import { Link, useParams } from 'react-router'
 import { CandleChart } from '../components/CandleChart'
 import { DateTimeLine } from '../components/DateTimeLine'
 import { GeometricCover } from '../components/NewsCard'
+import { MetricsPanel } from '../components/MetricsPanel'
 import { StarButton } from '../components/StarButton'
 import { TitleSpace } from '../components/TitleSpace'
+import { useMetrics } from '../hooks/useMetrics'
 import { useNews } from '../hooks/useNews'
 import { usePrices } from '../hooks/usePrices'
 import { useResolvedAssets } from '../hooks/useResolvedAssets'
@@ -38,6 +40,7 @@ export function AssetView({
 }) {
   const { symbol = '' } = useParams()
   const [range, setRange] = useState<RangeKey>('1d')
+  const [metricsOpen, setMetricsOpen] = useState(false)
   const [asset] = useResolvedAssets(symbol ? [symbol] : [])
   const { data, isFetching } = usePrices(
     symbol,
@@ -45,6 +48,7 @@ export function AssetView({
     range === '1d' ? 'detail' : 'preview',
   )
   const { data: news = [], error: newsError, isLoading: newsLoading } = useNews(symbol)
+  const { data: metrics, isLoading: metricsLoading } = useMetrics(symbol, range)
   const candles = data?.candles ?? []
 
   if (!symbol) {
@@ -52,7 +56,10 @@ export function AssetView({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="w-full">
+      <div className="grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,40rem)_minmax(220px,18rem)] md:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,56rem)_minmax(260px,22rem)] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,72rem)_minmax(300px,1fr)]">
+      <div aria-hidden="true" className="hidden md:block" />
+      <div className="w-full min-w-0">
       <TitleSpace
         title={
           <Link to="/" aria-label="Home" className="flex items-center">
@@ -65,7 +72,7 @@ export function AssetView({
         }
         subTitle={
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">
+            <h1 className="min-w-0 flex-1 truncate text-xl font-bold">
               {asset.name} ({displaySymbol(asset.symbol)})
             </h1>
             <StarButton
@@ -78,6 +85,13 @@ export function AssetView({
                   : onAdd(asset.symbol)
               }
             />
+            <button
+              type="button"
+              onClick={() => setMetricsOpen(true)}
+              className="shrink-0 rounded-md bg-beige-light px-2 py-1 text-xs font-bold text-ink md:hidden"
+            >
+              Metrics
+            </button>
           </div>
         }
         symbols={symbols}
@@ -87,6 +101,7 @@ export function AssetView({
         onMissing={onMissing}
       />
       <main className="space-y-4 p-4 md:p-6">
+      <div className="min-w-0 space-y-4">
       <section className="bg-white py-2">
         {candles.length > 0 ? (
           <CandleChart data={candles} height={280} />
@@ -95,7 +110,7 @@ export function AssetView({
             {isFetching ? 'Loading chart…' : 'No price data. Start the backend for live charts.'}
           </p>
         )}
-        <div className="mt-2 flex justify-end gap-1">
+        <div className="mt-2 flex flex-wrap justify-end gap-1">
           {RANGES.map((r) => (
             <button
               key={r.key}
@@ -177,7 +192,40 @@ export function AssetView({
           </div>
         )}
       </section>
+      </div>
       </main>
+      </div>
+      <aside className="hidden min-w-0 md:block">
+        <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-full overflow-y-auto overscroll-contain rounded-lg bg-white p-4">
+          <h2 className="sticky top-0 mb-2 bg-white pb-1 text-lg font-bold">METRICS</h2>
+          <MetricsPanel range={range} values={metrics?.values} kind={asset.kind} loading={metricsLoading} />
+        </div>
+      </aside>
+      </div>
+      {metricsOpen && (
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Metrics">
+          <button
+            type="button"
+            aria-label="Close metrics"
+            onClick={() => setMetricsOpen(false)}
+            className="absolute inset-0 bg-black/50"
+          />
+          <div className="absolute inset-x-4 top-[10vh] max-h-[80vh] overflow-y-auto rounded-lg bg-white p-4 shadow-xl">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-lg font-bold">METRICS</h2>
+              <button
+                type="button"
+                onClick={() => setMetricsOpen(false)}
+                aria-label="Close metrics"
+                className="rounded px-2 py-1 text-sm font-bold text-stone-500 hover:bg-beige-light"
+              >
+                ✕
+              </button>
+            </div>
+            <MetricsPanel range={range} values={metrics?.values} kind={asset.kind} loading={metricsLoading} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

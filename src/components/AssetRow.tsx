@@ -1,11 +1,13 @@
 import { Link } from 'react-router'
 import { displaySymbol } from '../lib/format'
+import { useMetrics } from '../hooks/useMetrics'
 import { useNews } from '../hooks/useNews'
+import { usePrices } from '../hooks/usePrices'
 import type { Asset } from '../types'
 import { CandleChart } from './CandleChart'
 import { NewsCard } from './NewsCard'
 import { StarButton } from './StarButton'
-import { usePrices } from '../hooks/usePrices'
+import { HomeMetricsStrip } from './HomeMetricsStrip'
 
 export function AssetRow({
   asset,
@@ -21,6 +23,7 @@ export function AssetRow({
   onRemove: (symbol: string) => void
 }) {
   const { data: priceData } = usePrices(asset.symbol, '1d', 'preview')
+  const { data: metrics } = useMetrics(asset.symbol, '1d')
   const { data: news = [], error: newsError, isLoading: newsLoading } = useNews(asset.symbol)
   const candles = priceData?.candles ?? []
   const last = candles.length > 0 ? candles[candles.length - 1].c : null
@@ -39,6 +42,9 @@ export function AssetRow({
           {last !== null && (
             <span className="text-sm font-semibold">${last.toFixed(2)}</span>
           )}
+          <span className="hidden items-center gap-3 md:flex">
+            <HomeMetricsStrip values={metrics?.values} />
+          </span>
           <StarButton
             tracked={tracked}
             pending={pending}
@@ -48,6 +54,9 @@ export function AssetRow({
             }
           />
         </div>
+      </div>
+      <div className="mt-2 flex items-center gap-4 md:hidden">
+        <HomeMetricsStrip values={metrics?.values} />
       </div>
       <div className="mt-3 grid gap-4 md:grid-cols-[280px_1fr]">
         {candles.length > 0 ? (

@@ -26,6 +26,11 @@ export interface NewsArticle {
   source?: string
 }
 
+export interface MetricsResponse {
+  values: Record<string, number | null>
+  ticker: string | null
+}
+
 export type RangeKey =
   | '1d'
   | '5d'

@@ -99,7 +99,14 @@ export function Sidebar({
     )
   }
   return (
-    <aside className="sticky top-0 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white">
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        aria-label="Close menu"
+        className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+      />
+      <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white lg:sticky lg:top-0">
       <div className="relative flex items-center gap-2 px-4 py-4">
         <Link to="/" aria-label="Home" className="flex shrink-0 items-center">
           <img
@@ -175,6 +182,7 @@ export function Sidebar({
         onRemove={onRemove}
         onClose={() => setShowAll(false)}
       />
-    </aside>
+      </aside>
+    </>
   )
 }
