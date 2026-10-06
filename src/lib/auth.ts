@@ -49,22 +49,22 @@ export function sendResetEmail(email: string) {
   return sendPasswordResetEmail(auth, email)
 }
 
-export async function deleteAccount(password?: string) {
+export async function reauthWithPassword(password: string) {
   const user = auth?.currentUser
   if (!user) throw new Error('Not signed in')
-  try {
-    await deleteUser(user)
-  } catch (err) {
-    const code = (err as { code?: unknown })?.code
-    if (code === 'auth/requires-recent-login') {
-      if (!password || !user.email) throw err
-      const cred = EmailAuthProvider.credential(user.email, password)
-      await reauthenticateWithCredential(user, cred)
-      await deleteUser(user)
-      return
-    }
-    throw err
-  }
+  if (!password) throw new Error('Enter your password to confirm.')
+  if (!user.email) throw new Error('Not signed in')
+  const cred = EmailAuthProvider.credential(user.email, password)
+  await reauthenticateWithCredential(user, cred)
+}
+
+export async function deleteAccount(password: string) {
+  const user = auth?.currentUser
+  if (!user) throw new Error('Not signed in')
+  if (!password) throw new Error('Enter your password to confirm.')
+  // Always re-authenticate first so a wrong password never deletes anything.
+  await reauthWithPassword(password)
+  await deleteUser(user)
 }
 
 /**

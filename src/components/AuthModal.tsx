@@ -6,6 +6,7 @@ import {
   deleteAccount,
   login,
   logout,
+  reauthWithPassword,
   register,
   sendResetEmail,
   sendVerificationEmail,
@@ -47,6 +48,7 @@ function friendlyProfileError(err: unknown): string {
   if (code === 'auth/requires-recent-login') return 'Session expired. Enter your password to confirm.'
   if (code === 'auth/invalid-credential' || code === 'auth/wrong-password')
     return 'Incorrect password. Please try again.'
+  if (err instanceof Error && err.message === 'Enter your password to confirm.') return err.message
   return 'Something went wrong. Try again.'
 }
 
@@ -73,7 +75,7 @@ export function AuthModal({
   onDismissSync: () => void
   onReopenSync: () => void
   cloudReady: boolean
-  onRefreshUser?: () => Promise<unknown>
+  onRefreshUser?: () => Promise<User | null>
 }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
@@ -212,8 +214,13 @@ export function AuthModal({
       setError('Enter a valid email address.')
       return
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
+    if (mode === 'signup') {
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.')
+        return
+      }
+    } else if (!password) {
+      setError('Enter your password.')
       return
     }
     setBusy(true)
@@ -318,7 +325,10 @@ export function AuthModal({
     setVerifyMsg(null)
     setCheckingVerify(true)
     try {
-      await onRefreshUser?.()
+      const refreshed = await onRefreshUser?.()
+      if (refreshed && !refreshed.emailVerified) {
+        setVerifyMsg('Account not yet verified. Click the link in your email, then try again.')
+      }
     } catch {
       setVerifyMsg('Could not refresh status. Try again.')
     } finally {
@@ -358,8 +368,14 @@ export function AuthModal({
   async function handleDelete() {
     if (!user) return
     setDeleteError(null)
+    if (!deletePassword) {
+      setDeleteError('Enter your password to confirm.')
+      return
+    }
     setDeleteBusy(true)
     try {
+      // Verify password first so nothing is removed on a wrong password.
+      await reauthWithPassword(deletePassword)
       if (db) {
         try {
           await deleteDoc(doc(db, 'users', user.uid, 'watchlists', 'default'))
@@ -367,7 +383,7 @@ export function AuthModal({
           // Missing doc or offline; still delete the account.
         }
       }
-      await deleteAccount(deletePassword || undefined)
+      await deleteAccount(deletePassword)
       onBeforeLogout?.()
       handleClose()
     } catch (err) {
@@ -581,7 +597,7 @@ export function AuthModal({
                   This permanently removes your account and cloud watchlist. This device resets to defaults.
                 </p>
                 <label htmlFor="delete-password" className="mt-2 block text-xs font-semibold text-ink">
-                  Password (required if session is old)
+                  Password (required)
                 </label>
                 <input
                   id="delete-password"
@@ -609,7 +625,7 @@ export function AuthModal({
                   <button
                     type="button"
                     onClick={handleDelete}
-                    disabled={deleteBusy}
+                    disabled={deleteBusy || !deletePassword}
                     className="flex-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
                   >
                     {deleteBusy ? 'Deleting…' : 'Permanently delete'}
