@@ -25,6 +25,46 @@ function AccountIcon() {
   )
 }
 
+function ChevronLeftIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0 text-coffee"
+    >
+      <path d="M11 17l-5-5 5-5" />
+      <path d="M18 17l-5-5 5-5" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0 text-coffee"
+    >
+      <path d="M13 17l5-5-5-5" />
+      <path d="M6 17l5-5-5-5" />
+    </svg>
+  )
+}
+
 function LoginIcon() {
   return (
     <svg
@@ -91,10 +131,10 @@ export function Sidebar({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/40"
+        className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40"
         aria-label="Open menu"
       >
-        ›
+        <ChevronRightIcon />
       </button>
     )
   }
@@ -123,10 +163,10 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-1 top-1 rounded-md px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/60"
+          className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-md border border-r-0 border-coffee-dark/40 bg-white px-1 py-3 text-ink shadow-[1px_0_0_0_white,0_1px_2px_0_rgb(0_0_0/0.05)] hover:bg-coffee/40"
           aria-label="Close menu"
         >
-          ‹
+          <ChevronLeftIcon />
         </button>
       </div>
       {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
