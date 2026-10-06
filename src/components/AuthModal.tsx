@@ -82,7 +82,9 @@ export function AuthModal({
   const [password, setPassword] = useState('')
   const [signupName, setSignupName] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [submitBusy, setSubmitBusy] = useState(false)
+  const [logoutBusy, setLogoutBusy] = useState(false)
+  const [signingUp, setSigningUp] = useState(false)
   const [awaitingSync, setAwaitingSync] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
   const [forgotBusy, setForgotBusy] = useState(false)
@@ -133,7 +135,9 @@ export function AuthModal({
   function handleClose() {
     clearCooldown()
     setError(null)
-    setBusy(false)
+    setSubmitBusy(false)
+    setLogoutBusy(false)
+    setSigningUp(false)
     setAwaitingSync(false)
     setEmail('')
     setPassword('')
@@ -155,11 +159,11 @@ export function AuthModal({
     setMode(next)
     setPassword('')
     setError(null)
-    setBusy(false)
+    setSubmitBusy(false)
     setForgotSent(false)
   }
 
-  const permanent = !!user
+  const permanent = !!user && !signingUp
   const verified = !!user?.emailVerified
   // Fresh sign-in with a customized device list: ask before touching either side.
   const showInquiry = permanent && pendingSync !== null && !syncDismissed
@@ -223,11 +227,13 @@ export function AuthModal({
       setError('Enter your password.')
       return
     }
-    setBusy(true)
+    const isSignup = mode === 'signup'
+    if (isSignup) setSigningUp(true)
+    setSubmitBusy(true)
     try {
       // New signups push the device list to the cloud once verified;
       // sign-ins pull the cloud list, or ask when customized (see useInterests).
-      if (mode === 'login') {
+      if (!isSignup) {
         setLastAuthMode('login')
         await login(cleanEmail, password)
         // Stay open: show the sync inquiry if one arrives, else close below.
@@ -249,7 +255,10 @@ export function AuthModal({
           // Verification send failure should not block signup.
         }
         await onRefreshUser?.()
-        handleClose()
+        // Stay open on the verification banner; clear secrets only.
+        setPassword('')
+        setSignupName('')
+        setVerifySent(true)
       }
     } catch (err) {
       // Failed attempt changes no uid; discard the recorded intent.
@@ -258,7 +267,8 @@ export function AuthModal({
       const code = (err as { code?: unknown })?.code
       if (code === 'auth/too-many-requests') startCooldown(30)
     } finally {
-      setBusy(false)
+      setSubmitBusy(false)
+      if (isSignup) setSigningUp(false)
     }
   }
 
@@ -352,7 +362,7 @@ export function AuthModal({
 
   async function handleLogout() {
     setError(null)
-    setBusy(true)
+    setLogoutBusy(true)
     try {
       await logout()
       // Clear device list so a fresh guest starts from defaults.
@@ -361,7 +371,7 @@ export function AuthModal({
     } catch {
       setError('Could not sign out. Try again.')
     } finally {
-      setBusy(false)
+      setLogoutBusy(false)
     }
   }
 
@@ -396,7 +406,7 @@ export function AuthModal({
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleClose}
+      onClick={signingUp ? undefined : handleClose}
       role="dialog"
       aria-modal="true"
       aria-label="Account"
@@ -418,6 +428,13 @@ export function AuthModal({
             >
               Got it
             </button>
+          </>
+        ) : signingUp ? (
+          <>
+            <h2 className="text-base font-bold">Creating your account…</h2>
+            <p className="mt-2 text-sm text-stone-600">
+              Setting up your profile and sending verification email. Please wait.
+            </p>
           </>
         ) : showInquiry && pendingSync ? (
           <>
@@ -568,10 +585,10 @@ export function AuthModal({
             <button
               type="button"
               onClick={handleLogout}
-              disabled={busy}
+              disabled={logoutBusy}
               className="mt-4 w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
             >
-              {busy ? 'Signing out…' : 'Sign out'}
+              {logoutBusy ? 'Signing out…' : 'Sign out'}
             </button>
 
             {!deleteConfirm ? (
@@ -719,10 +736,10 @@ export function AuthModal({
               {error && <p className="text-sm text-red-600">{error}</p>}
               <button
                 type="submit"
-                disabled={busy || cooldownLeft > 0}
+                disabled={submitBusy || cooldownLeft > 0}
                 className="w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
               >
-                {busy
+                {submitBusy
                   ? 'Please wait…'
                   : cooldownLeft > 0
                     ? `Locked — try again in ${cooldownLeft}s`
