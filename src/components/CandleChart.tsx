@@ -78,7 +78,7 @@ export function CandleChart({
         horzLines: { color: '#f5efe6' },
       },
       rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false, timeVisible: !compact, fixLeftEdge: !compact },
+      timeScale: { borderVisible: false, timeVisible: !compact, fixLeftEdge: true },
     })
     const series = chart.addSeries(CandlestickSeries, {
       upColor: '#16a34a',
