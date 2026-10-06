@@ -31,32 +31,27 @@ export function AssetRow({
 
   return (
     <section className="bg-white px-1 py-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Link
           to={`/asset/${asset.symbol}`}
           className="text-lg font-bold text-ink hover:underline"
         >
           {asset.name} ({displaySymbol(asset.symbol)})
         </Link>
-        <div className="flex items-center gap-2">
-          {last !== null && (
-            <span className="text-sm font-semibold">${last.toFixed(2)}</span>
-          )}
-          <span className="hidden items-center gap-3 md:flex">
-            <HomeMetricsStrip values={metrics?.values} />
-          </span>
-          <StarButton
-            tracked={tracked}
-            pending={pending}
-            label={asset.symbol}
-            onToggle={() =>
-              tracked ? onRemove(asset.symbol) : onAdd(asset.symbol)
-            }
-          />
-        </div>
-      </div>
-      <div className="mt-2 flex items-center gap-4 md:hidden">
-        <HomeMetricsStrip values={metrics?.values} />
+        <StarButton
+          tracked={tracked}
+          pending={pending}
+          label={asset.symbol}
+          onToggle={() =>
+            tracked ? onRemove(asset.symbol) : onAdd(asset.symbol)
+          }
+        />
+        {last !== null && (
+          <span className="text-sm font-semibold">${last.toFixed(2)}</span>
+        )}
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <HomeMetricsStrip values={metrics?.values} />
+        </span>
       </div>
       <div className="mt-3 grid gap-4 md:grid-cols-[280px_1fr]">
         {candles.length > 0 ? (
