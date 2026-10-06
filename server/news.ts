@@ -1,6 +1,7 @@
 import { getCached, setCached } from './cache'
 import { db } from './db'
 import { logOutbound } from './log'
+import { throttled } from './throttle'
 
 export interface NewsArticle {
   id: string
@@ -66,8 +67,10 @@ async function fetchFinnhub(url: string, label: string): Promise<FinnhubRawArtic
   let lastError: Error | null = null
   for (let attempt = 1; attempt <= NEWS_MAX_ATTEMPTS; attempt++) {
     try {
-      if (attempt === 1) logOutbound('GET', url)
-      const res = await fetch(url)
+      const res = await throttled('finnhub', async () => {
+        if (attempt === 1) logOutbound('GET', url)
+        return fetch(url)
+      })
       if (res.ok) {
         const data = (await res.json()) as unknown
         return Array.isArray(data) ? (data as FinnhubRawArticle[]) : []

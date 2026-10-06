@@ -1,6 +1,7 @@
 import { kindUpdatedAt, setCached } from './cache'
 import { db } from './db'
 import { logOutbound } from './log'
+import { throttled } from './throttle'
 
 export const ASSETS_TTL_MS = 10 * 24 * 3_600_000
 
@@ -144,17 +145,19 @@ function rootOf(symbol: string): string {
 }
 
 async function postScan(base: string, body: ScanBody): Promise<ScanRow[]> {
-  logOutbound('POST', base)
-  const res = await fetch(base, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
+  return throttled('tradingview', async () => {
+    logOutbound('POST', base)
+    const res = await fetch(base, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!res.ok) throw new Error(`TradingView scan failed: ${res.status}`)
+    const json = (await res.json()) as { data?: ScanRow[] }
+    if (!Array.isArray(json.data)) throw new Error('Unexpected scan shape')
+    return json.data
   })
-  if (!res.ok) throw new Error(`TradingView scan failed: ${res.status}`)
-  const json = (await res.json()) as { data?: ScanRow[] }
-  if (!Array.isArray(json.data)) throw new Error('Unexpected scan shape')
-  return json.data
 }
 
 async function fetchScan(kind: keyof typeof QUERIES): Promise<StoredAsset[]> {
