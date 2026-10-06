@@ -104,7 +104,7 @@ export function AssetView({
       <div className="min-w-0 space-y-4">
       <section className="bg-white py-2">
         {candles.length > 0 ? (
-          <CandleChart data={candles} height={280} />
+          <CandleChart data={candles} height={280} rangeKey={range} />
         ) : (
           <p className="py-20 text-center text-sm text-stone-400">
             {isFetching ? 'Loading chart…' : 'No price data. Start the backend for live charts.'}

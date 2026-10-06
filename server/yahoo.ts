@@ -45,6 +45,21 @@ const TABLE: Record<YahooRange, { range: string; interval: string }> = {
   max: { range: 'max', interval: '1mo' },
 }
 
+// Offset fetch: request a larger native Yahoo window so the chart can show
+// the selected range in view while allowing backtrack into older candles.
+// Interval is kept from TABLE (resolution of the requested range).
+const FETCH_RANGE: Record<YahooRange, string> = {
+  '1d': '5d',
+  '5d': '1mo',
+  '1Mo': '3mo',
+  '3Mo': '6mo',
+  '6mo': '1y',
+  '1Y': '5y',
+  '5y': 'max',
+  ytd: '5y',
+  max: 'max',
+}
+
 export const YAHOO_RANGES = Object.keys(TABLE) as YahooRange[]
 
 const EXCHANGE_SUFFIX: Record<string, string> = {
@@ -166,16 +181,17 @@ function toCandles(r: ChartResult): Candle[] {
   return out
 }
 
-// Full fetched history is returned; the client windows the latest 150.
+// Full over-fetched history is returned; the client windows the requested range.
 export async function getPrices(
   symbol: string,
   range: YahooRange,
   mode: YahooMode,
 ): Promise<{ candles: Candle[]; yahooSymbol: string | null }> {
-  const { range: yrange, interval } = TABLE[range]
+  const { interval } = TABLE[range]
+  const yrange = FETCH_RANGE[range]
   // Yahoo has no 10m interval; 5m merges to ~144 bars on 24/7 symbols.
   const yinterval = range === '1d' && mode === 'detail' ? '5m' : interval
-  const key = `yahoo:chart:v2:${symbol.toUpperCase()}:${range}:${mode}`
+  const key = `yahoo:chart:v3:${symbol.toUpperCase()}:${range}:${mode}`
   const cached = getCached(key, YAHOO_TTL_MS)
   if (cached) return JSON.parse(cached) as { candles: Candle[]; yahooSymbol: string }
   const candidates = await mapToYahoo(symbol)
