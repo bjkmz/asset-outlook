@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { User } from 'firebase/auth'
 import { login, logout, register, setLastAuthMode, takeLastAuthMode } from '../lib/auth'
 import { isFirebaseConfigured } from '../lib/firebase'
@@ -188,9 +189,9 @@ export function AuthModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
@@ -362,6 +363,7 @@ export function AuthModal({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 export function UnavailableModal({
   symbol,
   onClose,
@@ -6,8 +8,8 @@ export function UnavailableModal({
   onClose: () => void
 }) {
   if (!symbol) return null
-  return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
         <h2 className="text-base font-bold">Asset unavailable</h2>
         <p className="mt-2 text-sm text-stone-600">
@@ -21,6 +23,7 @@ export function UnavailableModal({
           Got it
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
