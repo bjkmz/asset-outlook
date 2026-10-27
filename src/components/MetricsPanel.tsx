@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { formatLarge, formatMetric, formatRecommend, formatSigned } from '../lib/format'
 import type { RangeKey } from '../types'
 
@@ -114,6 +114,25 @@ function rangeRows(range: RangeKey): Row[] {
   return rows
 }
 
+function ChevronIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`shrink-0 transition-transform duration-150 ${collapsed ? '-rotate-90' : ''}`}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
 function Category({
   name,
   rows,
@@ -124,25 +143,29 @@ function Category({
   values: Record<string, number | null> | undefined
 }) {
   const [collapsed, setCollapsed] = useState(false)
+  const bodyId = useId()
   // Omit metrics with no value for this asset; unsupported columns stay hidden.
   const visible = rows.filter((r) => values?.[r.key] != null)
   if (visible.length === 0) return null
   return (
     <div className="border-b border-beige-light pb-2 last:border-0">
-      <div className="flex items-center justify-between py-1">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-stone-500">{name}</h3>
-        <button
-          type="button"
-          aria-expanded={!collapsed}
-          aria-label={`${collapsed ? 'Show' : 'Hide'} ${name}`}
-          onClick={() => setCollapsed((c) => !c)}
-          className="rounded px-2 py-0.5 text-xs font-bold text-stone-500 hover:bg-beige-light"
-        >
-          {collapsed ? '+' : '−'}
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-expanded={!collapsed}
+        aria-controls={bodyId}
+        aria-label={`${collapsed ? 'Show' : 'Hide'} ${name}`}
+        onClick={() => setCollapsed((c) => !c)}
+        className="group -mx-1 flex w-full cursor-pointer items-center justify-between gap-2 rounded px-1 py-1.5 text-left hover:bg-beige-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-1"
+      >
+        <span className="text-xs font-bold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink">
+          {name}
+        </span>
+        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink">
+          <ChevronIcon collapsed={collapsed} />
+        </span>
+      </button>
       {!collapsed && (
-        <dl className="space-y-1">
+        <dl id={bodyId} className="space-y-1">
           {visible.map((r) => (
             <div key={r.key} className="flex items-baseline justify-between gap-2 text-sm">
               <dt className="text-stone-600">
