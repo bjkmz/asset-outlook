@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { useResolvedAssets } from '../hooks/useResolvedAssets'
 
 function GripIcon() {
   return (
@@ -36,6 +37,10 @@ export function InterestList({
 }) {
   const dragFrom = useRef<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
+  const assets = useResolvedAssets(symbols)
+  const kindBySymbol = new Map(
+    assets.filter((a) => a.resolved).map((a) => [a.symbol, a.kind]),
+  )
 
   return (
     <ul className="space-y-0.5">
@@ -82,6 +87,11 @@ export function InterestList({
             >
               {symbol}
             </Link>
+            {kindBySymbol.has(symbol) && (
+              <span className="shrink-0 text-[8px] font-medium capitalize tracking-wide text-stone-400">
+                {kindBySymbol.get(symbol)}
+              </span>
+            )}
             {renderActions?.(symbol)}
           </div>
         </li>

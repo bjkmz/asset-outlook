@@ -3,9 +3,12 @@ import type { Asset } from '../types'
 
 export interface ResolvedAsset extends Asset {
   exchange: string
+  resolved: boolean
 }
 
-async function resolveSymbols(symbols: string[]): Promise<ResolvedAsset[]> {
+type ApiResolvedAsset = Omit<ResolvedAsset, 'resolved'>
+
+async function resolveSymbols(symbols: string[]): Promise<ApiResolvedAsset[]> {
   const res = await fetch(
     `/api/assets/resolve?symbols=${encodeURIComponent(symbols.join(','))}`,
   )
@@ -24,7 +27,7 @@ export function useResolvedAssets(symbols: string[]): ResolvedAsset[] {
   })
   return symbols.map((s) => {
     const hit = data?.find((r) => r.symbol === s)
-    if (hit) return hit
-    return { symbol: s, name: s, kind: 'stock' as const, exchange: '' }
+    if (hit) return { ...hit, resolved: true }
+    return { symbol: s, name: s, kind: 'stock' as const, exchange: '', resolved: false }
   })
 }

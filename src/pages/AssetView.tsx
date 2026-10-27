@@ -72,9 +72,16 @@ export function AssetView({
         }
         subTitle={
           <div className="flex items-center gap-2">
-            <h1 className="min-w-0 flex-1 truncate text-xl font-bold">
-              {asset.name} ({displaySymbol(asset.symbol)})
-            </h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-xl font-bold">
+                {asset.name} ({displaySymbol(asset.symbol)})
+              </h1>
+              {asset.resolved && (
+                <p className="text-md font-medium capitalize tracking-wide text-stone-400">
+                  {asset.kind}
+                </p>
+              )}
+            </div>
             <StarButton
               tracked={symbols.includes(asset.symbol)}
               pending={pending.includes(asset.symbol)}

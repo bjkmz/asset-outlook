@@ -3,7 +3,7 @@ import { displaySymbol } from '../lib/format'
 import { useMetrics } from '../hooks/useMetrics'
 import { useNews } from '../hooks/useNews'
 import { usePrices } from '../hooks/usePrices'
-import type { Asset } from '../types'
+import type { ResolvedAsset } from '../hooks/useResolvedAssets'
 import { CandleChart } from './CandleChart'
 import { NewsCard } from './NewsCard'
 import { StarButton } from './StarButton'
@@ -16,7 +16,7 @@ export function AssetRow({
   onAdd,
   onRemove,
 }: {
-  asset: Asset
+  asset: ResolvedAsset
   tracked: boolean
   pending: boolean
   onAdd: (symbol: string) => void
@@ -32,12 +32,19 @@ export function AssetRow({
   return (
     <section className="bg-white px-1 py-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <Link
-          to={`/asset/${asset.symbol}`}
-          className="min-w-0 text-lg font-bold text-ink hover:underline"
-        >
-          {asset.name} ({displaySymbol(asset.symbol)})
-        </Link>
+        <div className="min-w-0">
+          <Link
+            to={`/asset/${asset.symbol}`}
+            className="text-lg font-bold text-ink hover:underline"
+          >
+            {asset.name} ({displaySymbol(asset.symbol)})
+          </Link>
+          {asset.resolved && (
+            <p className="text-sm font-medium capitalize tracking-wide text-stone-400">
+              {asset.kind}
+            </p>
+          )}
+        </div>
         <StarButton
           tracked={tracked}
           pending={pending}

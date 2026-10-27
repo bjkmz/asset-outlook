@@ -121,6 +121,9 @@ export function SearchBar({
                     <span className="ml-2 text-[11px] text-stone-400">{a.exchange}</span>
                   )}
                 </button>
+                <span className="shrink-0 text-xs font-medium capitalize tracking-wide text-stone-400">
+                  {a.kind}
+                </span>
                 <StarButton
                   tracked={tracked}
                   pending={pending.includes(a.symbol)}
