@@ -45,9 +45,9 @@ export function NewsCard({ article }: { article: NewsArticle }) {
       href={article.url}
       target="_blank"
       rel="noreferrer"
-      className="group block min-w-0 bg-white transition hover:bg-beige-light/50"
+      className="group block min-w-0 bg-white transition hover:bg-beige-light/50 dark:bg-stone-900 dark:hover:bg-stone-800/60"
     >
-      <div className="relative h-24 w-full overflow-hidden bg-beige">
+      <div className="relative h-24 w-full overflow-hidden bg-beige dark:bg-stone-800">
         {article.image && !imgError ? (
           <img
             src={article.image}
@@ -60,10 +60,10 @@ export function NewsCard({ article }: { article: NewsArticle }) {
         )}
       </div>
       <div className="p-2">
-        <p className="line-clamp-2 text-xs font-semibold text-ink group-hover:text-coffee">
+        <p className="line-clamp-2 text-xs font-semibold text-ink group-hover:text-coffee dark:text-stone-100">
           {article.title}
         </p>
-        <div className="mt-1 flex items-center justify-between text-[11px] text-stone-500">
+        <div className="mt-1 flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400">
           <span>{article.source || 'News'}</span>
           <span>{formatDate(article.publishedAt)}</span>
         </div>

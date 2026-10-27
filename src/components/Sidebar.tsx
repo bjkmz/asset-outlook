@@ -4,6 +4,7 @@ import type { User } from 'firebase/auth'
 import { InterestList } from './InterestList'
 import { InterestsModal } from './InterestsModal'
 import { StarButton } from './StarButton'
+import { ThemeToggle } from './ThemeToggle'
 
 function AccountIcon() {
   return (
@@ -17,7 +18,7 @@ function AccountIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="shrink-0 text-ink"
+      className="shrink-0 text-ink dark:text-stone-200"
     >
       <circle cx="12" cy="8" r="4" />
       <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
@@ -77,7 +78,7 @@ function LoginIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="shrink-0 text-ink"
+      className="shrink-0 text-ink dark:text-stone-200"
     >
       <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
       <path d="M10 17l5-5-5-5" />
@@ -98,7 +99,7 @@ function LogoutIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="shrink-0 text-ink"
+      className="shrink-0 text-ink dark:text-stone-200"
     >
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <path d="M16 17l5-5-5-5" />
@@ -131,7 +132,7 @@ export function Sidebar({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40"
+        className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800"
         aria-label="Open menu"
       >
         <ChevronRightIcon />
@@ -146,7 +147,7 @@ export function Sidebar({
         aria-label="Close menu"
         className="fixed inset-0 z-30 bg-black/50 lg:hidden"
       />
-      <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white lg:sticky lg:top-0">
+      <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white lg:sticky lg:top-0 dark:border-stone-800 dark:bg-stone-900">
       <div className="relative flex items-center gap-2 px-4 py-4">
         <Link to="/" aria-label="Home" className="flex shrink-0 items-center">
           <img
@@ -163,7 +164,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-md border border-r-0 border-coffee-dark/40 bg-white px-1 py-3 text-ink shadow-[1px_0_0_0_white,0_1px_2px_0_rgb(0_0_0/0.05)] hover:bg-coffee/40"
+          className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-md border border-r-0 border-coffee-dark/40 bg-white px-1 py-3 text-ink shadow-[1px_0_0_0_white,0_1px_2px_0_rgb(0_0_0/0.05)] hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:shadow-none dark:hover:bg-stone-800"
           aria-label="Close menu"
         >
           <ChevronLeftIcon />
@@ -171,7 +172,7 @@ export function Sidebar({
       </div>
       {/* <p className="min-h-0 flex-1 overflow-y-auto px-4 text-xs text-stone-500">Menu reserved for future.</p> */}
       <nav aria-label="Interests" className="min-h-0 flex-1 overflow-y-auto mt-[10vh] px-2 py-2">
-        <p className="px-1.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-stone-500">
+        <p className="px-1.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400">
           Interests
         </p>
         <InterestList
@@ -185,36 +186,37 @@ export function Sidebar({
           <button
             type="button"
             onClick={() => setShowAll(true)}
-            className="mt-1 w-full rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink hover:bg-beige-light"
+            className="mt-1 w-full rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink hover:bg-beige-light dark:text-stone-100 dark:hover:bg-stone-800"
           >
             View all ({symbols.length})
           </button>
         )}
       </nav>
-      {!authLoading && (
-      <div className="mt-auto border-t border-coffee-dark/40 p-2">
-        <button
-          type="button"
-          onClick={onAccountClick}
-          aria-label="Account"
-          title={user?.displayName || user?.email || 'Guest'}
-          className="relative flex w-full items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-beige-light"
-        >
-          <AccountIcon />
-          <span className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-ink">
-            {user?.displayName || user?.email || 'Guest'}
-          </span>
-          {syncAlert && (
-            <span
-              aria-hidden="true"
-              title="Watchlist sync needed"
-              className="absolute right-1 top-1 h-2 w-2 rounded-full bg-amber-500"
-            />
-          )}
-          {user ? <LogoutIcon /> : <LoginIcon />}
-        </button>
+      <div className="mt-auto border-t border-coffee-dark/40 p-2 dark:border-stone-700">
+        <ThemeToggle />
+        {!authLoading && (
+          <button
+            type="button"
+            onClick={onAccountClick}
+            aria-label="Account"
+            title={user?.displayName || user?.email || 'Guest'}
+            className="relative mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-beige-light dark:hover:bg-stone-800"
+          >
+            <AccountIcon />
+            <span className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-ink dark:text-stone-100">
+              {user?.displayName || user?.email || 'Guest'}
+            </span>
+            {syncAlert && (
+              <span
+                aria-hidden="true"
+                title="Watchlist sync needed"
+                className="absolute right-1 top-1 h-2 w-2 rounded-full bg-amber-500"
+              />
+            )}
+            {user ? <LogoutIcon /> : <LoginIcon />}
+          </button>
+        )}
       </div>
-      )}
       <InterestsModal
         open={showAll}
         symbols={symbols}

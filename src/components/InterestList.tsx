@@ -10,7 +10,7 @@ function GripIcon() {
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
-      className="shrink-0 text-stone-400"
+      className="shrink-0 text-stone-400 dark:text-stone-500"
     >
       <circle cx="9" cy="6" r="1.8" />
       <circle cx="15" cy="6" r="1.8" />
@@ -70,8 +70,8 @@ export function InterestList({
               setOverIndex(null)
               if (Number.isInteger(from)) onReorder(from, index)
             }}
-            className={`flex items-center gap-1.5 rounded-lg px-1.5 py-1 hover:bg-beige-light ${
-              overIndex === index ? 'ring-1 ring-coffee-dark' : ''
+            className={`flex items-center gap-1.5 rounded-lg px-1.5 py-1 hover:bg-beige-light dark:hover:bg-stone-800 ${
+              overIndex === index ? 'ring-1 ring-coffee-dark dark:ring-stone-600' : ''
             }`}
           >
             <span
@@ -83,12 +83,12 @@ export function InterestList({
             </span>
             <Link
               to={`/asset/${encodeURIComponent(symbol)}`}
-              className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-ink hover:underline"
+              className="min-w-0 flex-1 truncate text-left text-xs font-semibold text-ink hover:underline dark:text-stone-100"
             >
               {symbol}
             </Link>
             {kindBySymbol.has(symbol) && (
-              <span className="shrink-0 text-[8px] font-medium capitalize tracking-wide text-stone-400">
+              <span className="shrink-0 text-[8px] font-medium capitalize tracking-wide text-stone-400 dark:text-stone-500">
                 {kindBySymbol.get(symbol)}
               </span>
             )}

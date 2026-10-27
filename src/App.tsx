@@ -58,7 +58,7 @@ function App() {
   )
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-stone-950">
       <div className="flex min-h-screen w-full">
         <Sidebar user={user} authLoading={authLoading} symbols={symbols} onReorder={reorder} onRemove={remove} onAccountClick={() => setAuthOpen(true)} syncAlert={pendingSync !== null} />
         <div className="w-full min-w-0 flex-1">

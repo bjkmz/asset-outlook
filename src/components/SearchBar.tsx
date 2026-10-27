@@ -75,19 +75,19 @@ export function SearchBar({
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search assets (AAPL, BTC, Gold...)"
-        className="w-full rounded-full border border-coffee-dark bg-beige-light/60 px-4 py-2 text-sm text-ink shadow-sm outline-none placeholder:text-stone-400 focus:border-coffee-dark focus:bg-white"
+        className="w-full rounded-full border border-coffee-dark bg-beige-light/60 px-4 py-2 text-sm text-ink shadow-sm outline-none placeholder:text-stone-400 focus:border-coffee-dark focus:bg-white dark:border-stone-600 dark:bg-stone-800/70 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-stone-500 dark:focus:bg-stone-900"
       />
       {q.trim() && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-coffee-dark/40 bg-white shadow-lg">
-          <p className="border-b border-coffee-dark/30 bg-beige-light px-4 py-1.5 text-[11px] text-stone-500">
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-coffee-dark/40 bg-white shadow-lg dark:border-stone-700 dark:bg-stone-900">
+          <p className="border-b border-coffee-dark/30 bg-beige-light px-4 py-1.5 text-[11px] text-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400">
             Selecting a result opens its page. It is not tracked until you star
             it.
           </p>
           {isFetching && (
-            <p className="px-4 py-2 text-xs text-stone-400">Searching…</p>
+            <p className="px-4 py-2 text-xs text-stone-400 dark:text-stone-500">Searching…</p>
           )}
           {isError && (
-            <p className="px-4 py-2 text-xs text-stone-500">
+            <p className="px-4 py-2 text-xs text-stone-500 dark:text-stone-400">
               Search is unavailable. Error encountered.
             </p>
           )}
@@ -98,7 +98,7 @@ export function SearchBar({
                 onMissing(q.trim().toUpperCase())
                 setQ('')
               }}
-              className="block w-full px-4 py-2 text-left text-sm hover:bg-beige-light"
+              className="block w-full px-4 py-2 text-left text-sm hover:bg-beige-light dark:hover:bg-stone-800"
             >
               No local match for “{q.trim().toUpperCase()}” — check availability
             </button>
@@ -108,7 +108,7 @@ export function SearchBar({
             return (
               <div
                 key={`${a.exchange}:${a.symbol}`}
-                className="flex items-center gap-1 px-2 py-1 hover:bg-beige-light"
+                className="flex items-center gap-1 px-2 py-1 hover:bg-beige-light dark:hover:bg-stone-800"
               >
                 <button
                   type="button"
@@ -116,12 +116,14 @@ export function SearchBar({
                   className="min-w-0 flex-1 px-2 py-1 text-left text-sm"
                 >
                   <span className="font-semibold">{displaySymbol(a.symbol)}</span>
-                  <span className="ml-2 text-stone-500">{a.name}</span>
+                  <span className="ml-2 text-stone-500 dark:text-stone-400">{a.name}</span>
                   {a.exchange && (
-                    <span className="ml-2 text-[11px] text-stone-400">{a.exchange}</span>
+                    <span className="ml-2 text-[11px] text-stone-400 dark:text-stone-500">
+                      {a.exchange}
+                    </span>
                   )}
                 </button>
-                <span className="shrink-0 text-xs font-medium capitalize tracking-wide text-stone-400">
+                <span className="shrink-0 text-xs font-medium capitalize tracking-wide text-stone-400 dark:text-stone-500">
                   {a.kind}
                 </span>
                 <StarButton

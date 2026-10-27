@@ -8,6 +8,7 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts'
 import { useEffect, useRef } from 'react'
+import { useTheme } from '../hooks/useTheme'
 import type { Candle, RangeKey } from '../types'
 
 function toSeriesData(data: Candle[]): CandlestickData[] {
@@ -59,6 +60,7 @@ export function CandleChart({
   compact?: boolean
   rangeKey?: RangeKey
 }) {
+  const { theme } = useTheme()
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
@@ -66,25 +68,41 @@ export function CandleChart({
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
+    const colors =
+      theme === 'dark'
+        ? {
+            background: '#1c1917',
+            text: '#a8a29e',
+            grid: '#292524',
+            up: '#22c55e',
+            down: '#ef4444',
+          }
+        : {
+            background: '#ffffff',
+            text: '#78716c',
+            grid: '#f5efe6',
+            up: '#16a34a',
+            down: '#dc2626',
+          }
     const chart = createChart(el, {
       height,
       layout: {
-        background: { type: ColorType.Solid, color: '#ffffff' },
-        textColor: '#78716c',
+        background: { type: ColorType.Solid, color: colors.background },
+        textColor: colors.text,
         attributionLogo: false,
       },
       grid: {
-        vertLines: { visible: !compact, color: '#f5efe6' },
-        horzLines: { color: '#f5efe6' },
+        vertLines: { visible: !compact, color: colors.grid },
+        horzLines: { color: colors.grid },
       },
       rightPriceScale: { borderVisible: false },
       timeScale: { borderVisible: false, timeVisible: !compact, fixLeftEdge: true },
     })
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#16a34a',
-      downColor: '#dc2626',
-      wickUpColor: '#16a34a',
-      wickDownColor: '#dc2626',
+      upColor: colors.up,
+      downColor: colors.down,
+      wickUpColor: colors.up,
+      wickDownColor: colors.down,
       borderVisible: false,
     })
     chartRef.current = chart
@@ -99,7 +117,7 @@ export function CandleChart({
       chartRef.current = null
       seriesRef.current = null
     }
-  }, [height, compact])
+  }, [height, compact, theme])
 
   useEffect(() => {
     const series = seriesRef.current
@@ -126,7 +144,7 @@ export function CandleChart({
     chart
       .timeScale()
       .setVisibleLogicalRange({ from: split, to: data.length })
-  }, [data, compact, rangeKey])
+  }, [data, compact, rangeKey, theme])
 
   return <div ref={containerRef} className="w-full" />
 }

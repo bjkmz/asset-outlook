@@ -52,7 +52,7 @@ export function AssetView({
   const candles = data?.candles ?? []
 
   if (!symbol) {
-    return <p className="text-sm text-stone-500">Unknown asset.</p>
+    return <p className="text-sm text-stone-500 dark:text-stone-400">Unknown asset.</p>
   }
 
   return (
@@ -77,7 +77,7 @@ export function AssetView({
                 {asset.name} ({displaySymbol(asset.symbol)})
               </h1>
               {asset.resolved && (
-                <p className="text-md font-medium capitalize tracking-wide text-stone-400">
+                <p className="text-md font-medium capitalize tracking-wide text-stone-400 dark:text-stone-500">
                   {asset.kind}
                 </p>
               )}
@@ -95,7 +95,7 @@ export function AssetView({
             <button
               type="button"
               onClick={() => setMetricsOpen(true)}
-              className="shrink-0 rounded-md bg-beige-light px-2 py-1 text-xs font-bold text-ink md:hidden"
+              className="shrink-0 rounded-md bg-beige-light px-2 py-1 text-xs font-bold text-ink md:hidden dark:bg-stone-800 dark:text-stone-100"
             >
               Metrics
             </button>
@@ -109,11 +109,11 @@ export function AssetView({
       />
       <main className="space-y-4 p-4 md:p-6">
       <div className="min-w-0 space-y-4">
-      <section className="bg-white py-2">
+      <section className="bg-white py-2 dark:bg-stone-900">
         {candles.length > 0 ? (
           <CandleChart data={candles} height={280} rangeKey={range} />
         ) : (
-          <p className="py-20 text-center text-sm text-stone-400">
+          <p className="py-20 text-center text-sm text-stone-400 dark:text-stone-500">
             {isFetching ? 'Loading chart…' : 'No price data. Start the backend for live charts.'}
           </p>
         )}
@@ -125,8 +125,8 @@ export function AssetView({
               onClick={() => setRange(r.key)}
               className={`rounded-md px-2 py-1 text-xs font-bold ${
                 r.key === range
-                  ? 'bg-ink text-white'
-                  : 'bg-beige-light text-ink hover:bg-coffee/60'
+                  ? 'bg-ink text-white dark:bg-coffee dark:text-espresso'
+                  : 'bg-beige-light text-ink hover:bg-coffee/60 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700'
               }`}
             >
               {r.label}
@@ -136,11 +136,11 @@ export function AssetView({
       </section>
 
       <DateTimeLine />
-      <section className="bg-white py-2">
+      <section className="bg-white py-2 dark:bg-stone-900">
         <h2 className="text-lg font-bold">NEWS</h2>
         {newsError ? (
-          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center">
-            <p className="text-sm text-stone-500">
+          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center dark:bg-stone-800/60">
+            <p className="text-sm text-stone-500 dark:text-stone-400">
               {newsError.message.includes('FINNHUB_API_KEY')
                 ? 'Configure FINNHUB_API_KEY in .env file to enable live news feeds.'
                 : 'Unable to load news feed.'}
@@ -150,11 +150,11 @@ export function AssetView({
           <div className="mt-3 space-y-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex animate-pulse gap-3 py-3">
-                <div className="h-20 w-28 shrink-0 rounded-lg bg-stone-200" />
+                <div className="h-20 w-28 shrink-0 rounded-lg bg-stone-200 dark:bg-stone-700" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 bg-stone-200" />
-                  <div className="h-3 w-full bg-stone-200" />
-                  <div className="h-3 w-1/2 bg-stone-200" />
+                  <div className="h-4 w-3/4 bg-stone-200 dark:bg-stone-700" />
+                  <div className="h-3 w-full bg-stone-200 dark:bg-stone-700" />
+                  <div className="h-3 w-1/2 bg-stone-200 dark:bg-stone-700" />
                 </div>
               </div>
             ))}
@@ -167,9 +167,9 @@ export function AssetView({
                 href={a.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex gap-3 py-3 transition hover:bg-beige-light/50"
+                className="group flex gap-3 py-3 transition hover:bg-beige-light/50 dark:hover:bg-stone-800/60"
               >
-                <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-beige">
+                <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-beige dark:bg-stone-800">
                   {a.image ? (
                     <img
                       src={a.image}
@@ -181,11 +181,13 @@ export function AssetView({
                   )}
                 </div>
                 <div>
-                  <p className="font-semibold text-ink group-hover:text-coffee">{a.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-stone-600">
+                  <p className="font-semibold text-ink group-hover:text-coffee dark:text-stone-100">
+                    {a.title}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm text-stone-600 dark:text-stone-400">
                     {a.summary}
                   </p>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-stone-400">
+                  <div className="mt-2 flex items-center gap-3 text-xs text-stone-400 dark:text-stone-500">
                     <span>{a.source || 'News'}</span>
                     <span>{new Date(a.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
@@ -194,8 +196,10 @@ export function AssetView({
             ))}
           </div>
         ) : (
-          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center">
-            <p className="text-sm text-stone-400">No news articles found in the past 30 days.</p>
+          <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center dark:bg-stone-800/60">
+            <p className="text-sm text-stone-400 dark:text-stone-500">
+              No news articles found in the past 30 days.
+            </p>
           </div>
         )}
       </section>
@@ -203,8 +207,10 @@ export function AssetView({
       </main>
       </div>
       <aside className="hidden min-w-0 md:block">
-        <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-full overflow-y-auto overscroll-contain rounded-lg bg-white p-4">
-          <h2 className="sticky top-0 mb-2 bg-white pb-1 text-lg font-bold">METRICS</h2>
+        <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-full overflow-y-auto overscroll-contain rounded-lg bg-white p-4 dark:bg-stone-900">
+          <h2 className="sticky top-0 mb-2 bg-white pb-1 text-lg font-bold dark:bg-stone-900">
+            METRICS
+          </h2>
           <MetricsPanel range={range} values={metrics?.values} kind={asset.kind} loading={metricsLoading} />
         </div>
       </aside>
@@ -217,14 +223,14 @@ export function AssetView({
             onClick={() => setMetricsOpen(false)}
             className="absolute inset-0 bg-black/50"
           />
-          <div className="absolute inset-x-4 top-[10vh] max-h-[80vh] overflow-y-auto rounded-lg bg-white p-4 shadow-xl">
+          <div className="absolute inset-x-4 top-[10vh] max-h-[80vh] overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-stone-900">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="text-lg font-bold">METRICS</h2>
               <button
                 type="button"
                 onClick={() => setMetricsOpen(false)}
                 aria-label="Close metrics"
-                className="rounded px-2 py-1 text-sm font-bold text-stone-500 hover:bg-beige-light"
+                className="rounded px-2 py-1 text-sm font-bold text-stone-500 hover:bg-beige-light dark:text-stone-400 dark:hover:bg-stone-800"
               >
                 ✕
               </button>

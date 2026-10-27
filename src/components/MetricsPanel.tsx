@@ -148,19 +148,19 @@ function Category({
   const visible = rows.filter((r) => values?.[r.key] != null)
   if (visible.length === 0) return null
   return (
-    <div className="border-b border-beige-light pb-2 last:border-0">
+    <div className="border-b border-beige-light pb-2 last:border-0 dark:border-stone-800">
       <button
         type="button"
         aria-expanded={!collapsed}
         aria-controls={bodyId}
         aria-label={`${collapsed ? 'Show' : 'Hide'} ${name}`}
         onClick={() => setCollapsed((c) => !c)}
-        className="group -mx-1 flex w-full cursor-pointer items-center justify-between gap-2 rounded px-1 py-1.5 text-left hover:bg-beige-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-1"
+        className="group -mx-1 flex w-full cursor-pointer items-center justify-between gap-2 rounded px-1 py-1.5 text-left hover:bg-beige-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-1 dark:hover:bg-stone-800 dark:focus-visible:ring-stone-500 dark:focus-visible:ring-offset-stone-900"
       >
-        <span className="text-xs font-bold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink">
+        <span className="text-xs font-bold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink dark:text-stone-400 dark:group-hover:text-stone-100">
           {name}
         </span>
-        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink">
+        <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500 transition-colors group-hover:text-ink dark:text-stone-400 dark:group-hover:text-stone-100">
           <ChevronIcon collapsed={collapsed} />
         </span>
       </button>
@@ -168,11 +168,13 @@ function Category({
         <dl id={bodyId} className="space-y-1">
           {visible.map((r) => (
             <div key={r.key} className="flex items-baseline justify-between gap-2 text-sm">
-              <dt className="text-stone-600">
+              <dt className="text-stone-600 dark:text-stone-400">
                 {r.label}
                 {r.range ? '*' : ''}:
               </dt>
-              <dd className="font-medium text-ink">{r.format(values?.[r.key])}</dd>
+              <dd className="font-medium text-ink dark:text-stone-100">
+                {r.format(values?.[r.key])}
+              </dd>
             </div>
           ))}
         </dl>
@@ -196,7 +198,7 @@ export function MetricsPanel({
     return (
       <div className="space-y-2" aria-label="Loading metrics">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-4 animate-pulse bg-stone-100" />
+          <div key={i} className="h-4 animate-pulse bg-stone-100 dark:bg-stone-800" />
         ))}
       </div>
     )
@@ -211,14 +213,14 @@ export function MetricsPanel({
   const technicalRows = TECHNICALS.filter((r) => values?.[r.key] != null)
   const perfRows = rangeRows(range).filter((r) => values?.[r.key] != null)
   if (fundamentalRows.length === 0 && technicalRows.length === 0 && perfRows.length === 0) {
-    return <p className="text-sm text-stone-400">No metrics available for this asset type.</p>
+    return <p className="text-sm text-stone-400 dark:text-stone-500">No metrics available for this asset type.</p>
   }
   return (
     <div>
       {fundamentalRows.length > 0 && <Category name="Fundamentals" rows={FUNDAMENTALS} values={values} />}
       <Category name="Technicals" rows={TECHNICALS} values={values} />
       <Category name="Performance & Range" rows={rangeRows(range)} values={values} />
-      <p className="pt-2 text-[11px] text-stone-400">* Values change with the selected period range.</p>
+      <p className="pt-2 text-[11px] text-stone-400 dark:text-stone-500">* Values change with the selected period range.</p>
     </div>
   )
 }

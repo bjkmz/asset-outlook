@@ -412,19 +412,19 @@ export function AuthModal({
       aria-label="Account"
     >
       <div
-        className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 shadow-xl"
+        className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-5 shadow-xl dark:bg-stone-900"
         onClick={(e) => e.stopPropagation()}
       >
         {!isFirebaseConfigured ? (
           <>
             <h2 className="text-base font-bold">Account unavailable</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
               Missing VITE_FIREBASE_* env vars. Cloud sync disabled, using localStorage only.
             </p>
             <button
               type="button"
               onClick={handleClose}
-              className="mt-4 w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              className="mt-4 w-full rounded-full bg-ink dark:bg-coffee px-4 py-2 text-sm font-semibold text-white dark:text-espresso hover:opacity-90"
             >
               Got it
             </button>
@@ -432,35 +432,35 @@ export function AuthModal({
         ) : signingUp ? (
           <>
             <h2 className="text-base font-bold">Creating your account…</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
               Setting up your profile and sending verification email. Please wait.
             </p>
           </>
         ) : showInquiry && pendingSync ? (
           <>
             <h2 className="text-base font-bold">Sync your watchlist?</h2>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
               This device tracks {pendingSync.local.length} symbols, but your
               cloud list has {pendingSync.cloud.length}. Choose which list to keep.
             </p>
-            <p className="mt-2 rounded-xl bg-beige-light p-3 text-xs text-stone-600">
-              <span className="font-semibold text-ink">This device:</span>{' '}
+            <p className="mt-2 rounded-xl bg-beige-light p-3 text-xs text-stone-600 dark:bg-stone-800 dark:text-stone-300">
+              <span className="font-semibold text-ink dark:text-stone-100">This device:</span>{' '}
               {pendingSync.local.join(', ')}
               <br />
-              <span className="font-semibold text-ink">Cloud:</span>{' '}
+              <span className="font-semibold text-ink dark:text-stone-100">Cloud:</span>{' '}
               {pendingSync.cloud.join(', ')}
             </p>
             <button
               type="button"
               onClick={() => onResolveSync('pull')}
-              className="mt-4 w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              className="mt-4 w-full rounded-full bg-ink dark:bg-coffee px-4 py-2 text-sm font-semibold text-white dark:text-espresso hover:opacity-90"
             >
               Load from cloud
             </button>
             <button
               type="button"
               onClick={() => onResolveSync('push')}
-              className="mt-2 w-full rounded-full border border-coffee-dark/40 bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-beige-light"
+              className="mt-2 w-full rounded-full border border-coffee-dark/40 bg-white dark:border-stone-600 dark:bg-stone-900 px-4 py-2 text-sm font-semibold text-ink dark:text-stone-100 hover:bg-beige-light dark:hover:bg-stone-800"
             >
               Keep this device&apos;s list
             </button>
@@ -470,7 +470,7 @@ export function AuthModal({
                 onDismissSync()
                 handleClose()
               }}
-              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 hover:bg-beige-light"
+              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:bg-beige-light dark:hover:bg-stone-800"
             >
               Decide later
             </button>
@@ -478,35 +478,39 @@ export function AuthModal({
         ) : permanent ? (
           <>
             <h2 className="text-base font-bold">Account</h2>
-            <p className="mt-2 text-sm text-stone-600">
-              Signed in as <span className="font-semibold text-ink">{user?.email}</span>{' '}
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
+              Signed in as <span className="font-semibold text-ink dark:text-stone-100">{user?.email}</span>{' '}
               {verified ? (
-                <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-950 dark:text-green-300">
                   Verified
                 </span>
               ) : (
-                <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                   Unverified
                 </span>
               )}
             </p>
 
             {!verified && (
-              <div className="mt-3 rounded-xl border border-amber-500/60 bg-amber-50 p-3">
-                <p className="text-xs font-semibold text-ink">Verify your email to enable cloud sync.</p>
-                <p className="mt-1 text-xs text-stone-600">
+              <div className="mt-3 rounded-xl border border-amber-500/60 bg-amber-50 p-3 dark:border-amber-500/50 dark:bg-amber-950/40">
+                <p className="text-xs font-semibold text-ink dark:text-stone-100">Verify your email to enable cloud sync.</p>
+                <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">
                   Check your inbox for the verification link. The watchlist stays on this device until verified.
                 </p>
-                {verifyMsg && <p className="mt-1 text-xs text-red-600">{verifyMsg}</p>}
+                {verifyMsg && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">{verifyMsg}</p>
+                )}
                 {verifySent && !verifyMsg && (
-                  <p className="mt-1 text-xs text-green-700">Verification email sent. Check your inbox.</p>
+                  <p className="mt-1 text-xs text-green-700 dark:text-green-400">
+                    Verification email sent. Check your inbox.
+                  </p>
                 )}
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
                     onClick={handleResendVerification}
                     disabled={verifyBusy || cooldownLeft > 0}
-                    className="flex-1 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                    className="flex-1 rounded-full bg-ink dark:bg-coffee px-3 py-1.5 text-xs font-semibold text-white dark:text-espresso hover:opacity-90 disabled:opacity-50"
                   >
                     {verifyBusy
                       ? 'Sending…'
@@ -518,7 +522,7 @@ export function AuthModal({
                     type="button"
                     onClick={handleCheckVerification}
                     disabled={checkingVerify}
-                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white dark:border-stone-600 dark:bg-stone-900 px-3 py-1.5 text-xs font-semibold text-ink dark:text-stone-100 hover:bg-beige-light dark:hover:bg-stone-800 disabled:opacity-50"
                   >
                     {checkingVerify ? 'Checking…' : "I've verified"}
                   </button>
@@ -527,7 +531,7 @@ export function AuthModal({
             )}
 
             <div className="mt-4">
-              <label htmlFor="profile-name" className="text-xs font-semibold text-ink">
+              <label htmlFor="profile-name" className="text-xs font-semibold text-ink dark:text-stone-100">
                 Name
               </label>
               <div className="mt-1 flex gap-2">
@@ -539,34 +543,34 @@ export function AuthModal({
                   maxLength={40}
                   value={nameField}
                   onChange={(e) => setNameField(e.target.value)}
-                  className="min-w-0 flex-1 rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                  className="min-w-0 flex-1 rounded-xl border border-coffee-dark/50 bg-white dark:border-stone-600 dark:bg-stone-800 px-4 py-2 text-sm text-ink dark:text-stone-100 outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-coffee-dark dark:focus:border-stone-500"
                 />
                 <button
                   type="button"
                   onClick={handleSaveName}
                   disabled={nameBusy}
-                  className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                  className="shrink-0 rounded-full bg-ink dark:bg-coffee px-4 py-2 text-sm font-semibold text-white dark:text-espresso hover:opacity-90 disabled:opacity-50"
                 >
                   {nameBusy ? 'Saving…' : 'Save'}
                 </button>
               </div>
-              {nameMsg && <p className="mt-1 text-xs text-stone-600">{nameMsg}</p>}
+              {nameMsg && <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">{nameMsg}</p>}
             </div>
 
             <div className="mt-3">
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 Watchlist {verified ? 'syncs to this account.' : 'sync is paused until email is verified.'}
               </p>
               <button
                 type="button"
                 onClick={handleResetPassword}
                 disabled={resetBusy}
-                className="mt-2 w-full rounded-full border border-coffee-dark/40 bg-white px-4 py-2 text-sm font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+                className="mt-2 w-full rounded-full border border-coffee-dark/40 bg-white dark:border-stone-600 dark:bg-stone-900 px-4 py-2 text-sm font-semibold text-ink dark:text-stone-100 hover:bg-beige-light dark:hover:bg-stone-800 disabled:opacity-50"
               >
                 {resetBusy ? 'Sending…' : 'Reset password'}
               </button>
               {resetSent && (
-                <p className="mt-1 text-xs text-stone-600">
+                <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">
                   If the account exists, a reset email is on its way.
                 </p>
               )}
@@ -576,17 +580,17 @@ export function AuthModal({
               <button
                 type="button"
                 onClick={onReopenSync}
-                className="mt-2 w-full rounded-xl border border-amber-500/60 bg-amber-50 px-4 py-2 text-left text-xs font-semibold text-ink hover:bg-amber-100"
+                className="mt-2 w-full rounded-xl border border-amber-500/60 bg-amber-50 px-4 py-2 text-left text-xs font-semibold text-ink hover:bg-amber-100 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-stone-100 dark:hover:bg-amber-950/60"
               >
                 Watchlist sync needed — review which list to keep.
               </button>
             )}
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
             <button
               type="button"
               onClick={handleLogout}
               disabled={logoutBusy}
-              className="mt-4 w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+              className="mt-4 w-full rounded-full bg-ink dark:bg-coffee px-4 py-2 text-sm font-semibold text-white dark:text-espresso hover:opacity-90 disabled:opacity-50"
             >
               {logoutBusy ? 'Signing out…' : 'Sign out'}
             </button>
@@ -598,22 +602,24 @@ export function AuthModal({
                   setDeleteError(null)
                   setDeleteConfirm(true)
                 }}
-                className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
               >
                 Delete account
               </button>
             ) : (
               <div
-                className="mt-3 rounded-xl border border-red-500/60 bg-red-50 p-3"
+                className="mt-3 rounded-xl border border-red-500/60 bg-red-50 p-3 dark:border-red-500/50 dark:bg-red-950/40"
                 role="alertdialog"
                 aria-modal="true"
                 aria-label="Delete account confirmation"
               >
-                <p className="text-sm font-bold text-red-700">Delete account? This cannot be undone.</p>
-                <p className="mt-1 text-xs text-stone-600">
+                <p className="text-sm font-bold text-red-700 dark:text-red-300">
+                  Delete account? This cannot be undone.
+                </p>
+                <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">
                   This permanently removes your account and cloud watchlist. This device resets to defaults.
                 </p>
-                <label htmlFor="delete-password" className="mt-2 block text-xs font-semibold text-ink">
+                <label htmlFor="delete-password" className="mt-2 block text-xs font-semibold text-ink dark:text-stone-100">
                   Password (required)
                 </label>
                 <input
@@ -623,9 +629,9 @@ export function AuthModal({
                   placeholder="Enter password to confirm"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-red-500/40 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-red-500"
+                  className="mt-1 w-full rounded-xl border border-red-500/40 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-red-500 dark:border-red-500/50 dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500"
                 />
-                {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+                {deleteError && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{deleteError}</p>}
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
@@ -635,7 +641,7 @@ export function AuthModal({
                       setDeleteError(null)
                     }}
                     disabled={deleteBusy}
-                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-beige-light disabled:opacity-50"
+                    className="flex-1 rounded-full border border-coffee-dark/40 bg-white dark:border-stone-600 dark:bg-stone-900 px-3 py-1.5 text-xs font-semibold text-ink dark:text-stone-100 hover:bg-beige-light dark:hover:bg-stone-800 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -643,7 +649,7 @@ export function AuthModal({
                     type="button"
                     onClick={handleDelete}
                     disabled={deleteBusy || !deletePassword}
-                    className="flex-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                    className="flex-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50 dark:bg-red-500 dark:text-white dark:hover:bg-red-400"
                   >
                     {deleteBusy ? 'Deleting…' : 'Permanently delete'}
                   </button>
@@ -653,7 +659,7 @@ export function AuthModal({
             <button
               type="button"
               onClick={handleClose}
-              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 hover:bg-beige-light"
+              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:bg-beige-light dark:hover:bg-stone-800"
             >
               Close
             </button>
@@ -661,30 +667,30 @@ export function AuthModal({
         ) : awaitingSync ? (
           <>
             <h2 className="text-base font-bold">Signing you in…</h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
               Checking your cloud watchlist.
             </p>
           </>
         ) : (
           <>
-            <div className="mb-3 grid grid-cols-2 gap-1 rounded-full bg-beige-light p-1 text-sm font-semibold">
+            <div className="mb-3 grid grid-cols-2 gap-1 rounded-full bg-beige-light p-1 text-sm font-semibold dark:bg-stone-800">
               <button
                 type="button"
                 onClick={() => handleModeChange('login')}
-                className={`rounded-full px-3 py-1.5 ${mode === 'login' ? 'bg-white shadow' : 'text-stone-500'}`}
+                className={`rounded-full px-3 py-1.5 ${mode === 'login' ? 'bg-white shadow dark:bg-stone-700' : 'text-stone-500 dark:text-stone-400'}`}
               >
                 Sign in
               </button>
               <button
                 type="button"
                 onClick={() => handleModeChange('signup')}
-                className={`rounded-full px-3 py-1.5 ${mode === 'signup' ? 'bg-white shadow' : 'text-stone-500'}`}
+                className={`rounded-full px-3 py-1.5 ${mode === 'signup' ? 'bg-white shadow dark:bg-stone-700' : 'text-stone-500 dark:text-stone-400'}`}
               >
                 Sign up
               </button>
             </div>
 
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
               {mode === 'login'
                 ? 'Welcome back! Sign in to sync your watchlist from the cloud. If this device tracks its own list, you will choose which one to keep.'
                 : 'Join Asset Outlook! Create an account to save your watchlist to the cloud and access it anywhere — we’ll bring over what you’ve already tracked on this device.'}
@@ -699,7 +705,7 @@ export function AuthModal({
                   maxLength={40}
                   value={signupName}
                   onChange={(e) => setSignupName(e.target.value)}
-                  className="w-full rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                  className="w-full rounded-xl border border-coffee-dark/50 bg-white dark:border-stone-600 dark:bg-stone-800 px-4 py-2 text-sm text-ink dark:text-stone-100 outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-coffee-dark dark:focus:border-stone-500"
                 />
               )}
               <input
@@ -708,7 +714,7 @@ export function AuthModal({
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                className="w-full rounded-xl border border-coffee-dark/50 bg-white dark:border-stone-600 dark:bg-stone-800 px-4 py-2 text-sm text-ink dark:text-stone-100 outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-coffee-dark dark:focus:border-stone-500"
               />
               <input
                 type="password"
@@ -716,7 +722,7 @@ export function AuthModal({
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-coffee-dark/50 bg-white px-4 py-2 text-sm text-ink outline-none placeholder:text-stone-400 focus:border-coffee-dark"
+                className="w-full rounded-xl border border-coffee-dark/50 bg-white dark:border-stone-600 dark:bg-stone-800 px-4 py-2 text-sm text-ink dark:text-stone-100 outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-coffee-dark dark:focus:border-stone-500"
               />
               {mode === 'login' && (
                 <div className="flex items-center justify-between">
@@ -724,20 +730,20 @@ export function AuthModal({
                     type="button"
                     onClick={handleForgotPassword}
                     disabled={forgotBusy}
-                    className="text-xs font-semibold text-ink underline hover:opacity-80 disabled:opacity-50"
+                    className="text-xs font-semibold text-ink dark:text-stone-100 underline hover:opacity-80 disabled:opacity-50"
                   >
                     {forgotBusy ? 'Sending…' : 'Forgot password?'}
                   </button>
                   {forgotSent && (
-                    <span className="text-xs text-stone-500">Reset email sent if account exists.</span>
+                    <span className="text-xs text-stone-500 dark:text-stone-400">Reset email sent if account exists.</span>
                   )}
                 </div>
               )}
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
               <button
                 type="submit"
                 disabled={submitBusy || cooldownLeft > 0}
-                className="w-full rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-full bg-ink dark:bg-coffee px-4 py-2 text-sm font-semibold text-white dark:text-espresso hover:opacity-90 disabled:opacity-50"
               >
                 {submitBusy
                   ? 'Please wait…'
@@ -751,7 +757,7 @@ export function AuthModal({
             <button
               type="button"
               onClick={handleClose}
-              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 hover:bg-beige-light"
+              className="mt-2 w-full rounded-full px-4 py-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:bg-beige-light dark:hover:bg-stone-800"
             >
               Continue as guest
             </button>

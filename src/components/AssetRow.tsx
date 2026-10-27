@@ -30,17 +30,17 @@ export function AssetRow({
   const displayArticles = news.slice(0, 4)
 
   return (
-    <section className="bg-white px-1 py-6">
+    <section className="bg-white px-1 py-6 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <div className="min-w-0">
           <Link
             to={`/asset/${asset.symbol}`}
-            className="text-lg font-bold text-ink hover:underline"
+            className="text-lg font-bold text-ink hover:underline dark:text-stone-100"
           >
             {asset.name} ({displaySymbol(asset.symbol)})
           </Link>
           {asset.resolved && (
-            <p className="text-sm font-medium capitalize tracking-wide text-stone-400">
+            <p className="text-sm font-medium capitalize tracking-wide text-stone-400 dark:text-stone-500">
               {asset.kind}
             </p>
           )}
@@ -64,14 +64,14 @@ export function AssetRow({
             <CandleChart data={candles} height={140} compact />
           </div>
         ) : (
-          <p className="py-10 text-center text-xs text-stone-400">
+          <p className="py-10 text-center text-xs text-stone-400 dark:text-stone-500">
             No price data. Start the backend for live charts.
           </p>
         )}
         <div className="min-w-0">
           {newsError ? (
-            <div className="flex h-full min-h-[120px] items-center justify-center rounded-lg bg-stone-50 p-4 text-center">
-              <p className="text-xs text-stone-500">
+            <div className="flex h-full min-h-[120px] items-center justify-center rounded-lg bg-stone-50 p-4 text-center dark:bg-stone-800/60">
+              <p className="text-xs text-stone-500 dark:text-stone-400">
                 {newsError.message.includes('FINNHUB_API_KEY')
                   ? 'Configure FINNHUB_API_KEY in .env file for live news feeds.'
                   : 'Unable to load news feed.'}
@@ -80,10 +80,10 @@ export function AssetRow({
           ) : newsLoading ? (
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3 lg:grid-cols-4">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse bg-stone-100 p-2">
-                  <div className="h-24 bg-stone-200" />
-                  <div className="mt-2 h-3 w-3/4 bg-stone-200" />
-                  <div className="mt-1 h-2 w-1/2 bg-stone-200" />
+                <div key={i} className="animate-pulse bg-stone-100 p-2 dark:bg-stone-800">
+                  <div className="h-24 bg-stone-200 dark:bg-stone-700" />
+                  <div className="mt-2 h-3 w-3/4 bg-stone-200 dark:bg-stone-700" />
+                  <div className="mt-1 h-2 w-1/2 bg-stone-200 dark:bg-stone-700" />
                 </div>
               ))}
             </div>
@@ -94,8 +94,8 @@ export function AssetRow({
               ))}
             </div>
           ) : (
-            <div className="flex h-full min-h-[120px] items-center justify-center rounded-lg bg-stone-50 p-4 text-center">
-              <p className="text-xs text-stone-400">No recent news available.</p>
+            <div className="flex h-full min-h-[120px] items-center justify-center rounded-lg bg-stone-50 p-4 text-center dark:bg-stone-800/60">
+              <p className="text-xs text-stone-400 dark:text-stone-500">No recent news available.</p>
             </div>
           )}
         </div>

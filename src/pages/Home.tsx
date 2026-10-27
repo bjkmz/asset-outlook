@@ -39,7 +39,7 @@ export function Home({
       <main className="space-y-8 p-4 md:p-6">
         <DateTimeLine />
         {symbols.length === 0 ? (
-          <p className="p-8 text-center text-sm text-stone-500">
+          <p className="p-8 text-center text-sm text-stone-500 dark:text-stone-400">
             No interests yet. Use the search bar above to view an asset, then
             star it to track it here.
           </p>

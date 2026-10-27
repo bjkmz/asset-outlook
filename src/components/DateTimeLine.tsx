@@ -11,7 +11,7 @@ export function DateTimeLine() {
     minute: '2-digit',
   })
   return (
-    <p className={'text-sm font-bold text-stone-500'}>
+    <p className="text-sm font-bold text-stone-500 dark:text-stone-400">
       {text}
     </p>
   )

@@ -22,7 +22,9 @@ export function StarButton({
       aria-label={tracked ? `Remove ${label} from interests` : `Add ${label} to interests`}
       title={tracked ? 'Remove from interests' : 'Add to interests'}
       className={`shrink-0 rounded-full px-2 py-0.5 text-lg leading-none disabled:opacity-50 ${
-        tracked ? 'text-amber-500' : 'text-stone-400 hover:text-amber-500'
+        tracked
+          ? 'text-amber-500 dark:text-amber-400'
+          : 'text-stone-400 hover:text-amber-500 dark:text-stone-500 dark:hover:text-amber-400'
       }`}
     >
       {pending ? '…' : tracked ? '★' : '☆'}

@@ -35,7 +35,7 @@ export function InterestsModal({
         role="dialog"
         aria-modal="true"
         aria-label="All interests"
-        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-white p-5 shadow-xl"
+        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-white p-5 shadow-xl dark:bg-stone-900"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -44,7 +44,7 @@ export function InterestsModal({
             type="button"
             onClick={onClose}
             aria-label="Close interests"
-            className="rounded-md px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/60"
+            className="rounded-md px-2 py-1 text-sm font-semibold text-ink hover:bg-coffee/60 dark:text-stone-100 dark:hover:bg-stone-800"
           >
             ✕
           </button>
