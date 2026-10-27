@@ -23,7 +23,7 @@ export function AssetRow({
   onRemove: (symbol: string) => void
 }) {
   const { data: priceData } = usePrices(asset.symbol, '1d', 'preview')
-  const { data: metrics } = useMetrics(asset.symbol, '1d')
+  const { data: metrics, isLoading: metricsLoading } = useMetrics(asset.symbol, '1d')
   const { data: news = [], error: newsError, isLoading: newsLoading } = useNews(asset.symbol)
   const candles = priceData?.candles ?? []
   const last = candles.length > 0 ? candles[candles.length - 1].c : null
@@ -49,9 +49,7 @@ export function AssetRow({
         {last !== null && (
           <span className="text-sm font-semibold">${last.toFixed(2)}</span>
         )}
-        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <HomeMetricsStrip values={metrics?.values} />
-        </span>
+        <HomeMetricsStrip values={metrics?.values} loading={metricsLoading} />
       </div>
       <div className="mt-3 grid gap-4 [grid-template-columns:minmax(0,1fr)] md:grid-cols-[280px_1fr]">
         {candles.length > 0 ? (
