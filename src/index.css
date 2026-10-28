@@ -40,17 +40,17 @@ body {
 .home-gradient {
   background: linear-gradient(
     to bottom,
-    #ffffff 0,
-    var(--color-coffee) 50vh,
-    var(--color-coffee) 50vh
+    var(--color-coffee) 0,
+    #ffffff 50vh,
+    #ffffff 50vh
   );
 }
 
 .dark .home-gradient {
   background: linear-gradient(
     to bottom,
-    #0c0a09 0,
-    var(--color-coffee-deep) 50vh,
-    var(--color-coffee-deep) 50vh
+    var(--color-coffee-deep) 0,
+    #0c0a09 50vh,
+    #0c0a09 50vh
   );
 }

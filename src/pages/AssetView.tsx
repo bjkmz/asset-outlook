@@ -56,11 +56,11 @@ export function AssetView({
   }
 
   return (
-    <div className="min-h-screen w-full bg-coffee dark:bg-coffee-deep">
+    <div className="min-h-screen w-full bg-white dark:bg-stone-950">
       <div className="grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,40rem)_minmax(220px,18rem)] md:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,56rem)_minmax(260px,22rem)] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,72rem)_minmax(300px,1fr)]">
       <div aria-hidden="true" className="hidden md:block" />
       <div className="w-full min-w-0">
-      <div className="bg-gradient-to-b from-white to-coffee dark:from-stone-950 dark:to-coffee-deep">
+      <div className="bg-gradient-to-b from-coffee to-white dark:from-coffee-deep dark:to-stone-950">
       <TitleSpace
         title={
           <Link to="/" aria-label="Home" className="flex items-center">
