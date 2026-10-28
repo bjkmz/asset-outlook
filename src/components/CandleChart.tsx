@@ -71,14 +71,14 @@ export function CandleChart({
     const colors =
       theme === 'dark'
         ? {
-            background: '#1c1917',
+            background: 'transparent',
             text: '#a8a29e',
             grid: '#292524',
             up: '#22c55e',
             down: '#ef4444',
           }
         : {
-            background: '#ffffff',
+            background: 'transparent',
             text: '#78716c',
             grid: '#f5efe6',
             up: '#16a34a',

@@ -30,7 +30,7 @@ export function AssetRow({
   const displayArticles = news.slice(0, 4)
 
   return (
-    <section className="bg-white px-1 py-6 dark:bg-stone-900">
+    <section className="px-1 py-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <div className="min-w-0">
           <Link

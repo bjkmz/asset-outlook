@@ -4,6 +4,7 @@
 
 @theme {
   --color-coffee: #deccaf;
+  --color-coffee-deep: #2a1f18;
   --color-coffee-dark: #c9b896;
   --color-beige-light: #f5efe6;
   --color-beige: #e8dcc8;
@@ -34,4 +35,22 @@ body {
 .dark body {
   background-color: #0c0a09;
   color: #f5f5f4;
+}
+
+.home-gradient {
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0,
+    var(--color-coffee) 50vh,
+    var(--color-coffee) 50vh
+  );
+}
+
+.dark .home-gradient {
+  background: linear-gradient(
+    to bottom,
+    #0c0a09 0,
+    var(--color-coffee-deep) 50vh,
+    var(--color-coffee-deep) 50vh
+  );
 }

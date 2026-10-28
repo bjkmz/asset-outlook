@@ -19,7 +19,7 @@ export function Home({
   const assets = useResolvedAssets(symbols)
 
   return (
-    <div>
+    <div className="min-h-screen home-gradient">
       <TitleSpace
         hero
         title={

@@ -56,10 +56,11 @@ export function AssetView({
   }
 
   return (
-    <div className="w-full">
+    <div className="min-h-screen w-full bg-coffee dark:bg-coffee-deep">
       <div className="grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,40rem)_minmax(220px,18rem)] md:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,56rem)_minmax(260px,22rem)] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,72rem)_minmax(300px,1fr)]">
       <div aria-hidden="true" className="hidden md:block" />
       <div className="w-full min-w-0">
+      <div className="bg-gradient-to-b from-white to-coffee dark:from-stone-950 dark:to-coffee-deep">
       <TitleSpace
         title={
           <Link to="/" aria-label="Home" className="flex items-center">
@@ -107,9 +108,11 @@ export function AssetView({
         onRemove={onRemove}
         onMissing={onMissing}
       />
-      <main className="space-y-4 p-4 md:p-6">
+      <div aria-hidden="true" className="h-4 md:h-6" />
+      </div>
+      <main className="space-y-4 px-4 pb-4 md:px-6 md:pb-6">
       <div className="min-w-0 space-y-4">
-      <section className="bg-white py-2 dark:bg-stone-900">
+      <section className="py-2">
         {candles.length > 0 ? (
           <CandleChart data={candles} height={280} rangeKey={range} />
         ) : (
@@ -136,7 +139,7 @@ export function AssetView({
       </section>
 
       <DateTimeLine />
-      <section className="bg-white py-2 dark:bg-stone-900">
+      <section className="py-2">
         <h2 className="text-lg font-bold">NEWS</h2>
         {newsError ? (
           <div className="mt-3 rounded-lg bg-stone-50 p-6 text-center dark:bg-stone-800/60">

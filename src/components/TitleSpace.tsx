@@ -21,7 +21,7 @@ export function TitleSpace({
   hero?: boolean
 }) {
   return (
-    <section className={hero ? 'bg-white md:flex md:min-h-[20vh] md:items-center dark:bg-stone-900' : 'bg-white dark:bg-stone-900'}>
+    <section className={hero ? 'md:flex md:min-h-[20vh] md:items-center' : undefined}>
       <div className="flex w-full flex-row items-center gap-3 px-4 py-5 md:gap-4 md:px-6 md:py-6">
         <div className="min-w-0 shrink-0">{title}</div>
         <div className="ml-auto w-full min-w-0 max-w-56 flex-1 md:mr-12 md:max-w-sm md:flex-none">
