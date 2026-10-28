@@ -192,7 +192,7 @@ export function Sidebar({
           </button>
         )}
       </nav>
-      <div className="mt-auto border-t border-coffee-dark/40 p-2 dark:border-stone-700">
+      <div className="mt-auto p-2">
         <ThemeToggle />
         {!authLoading && (
           <button
