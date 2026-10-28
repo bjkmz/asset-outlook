@@ -147,8 +147,8 @@ export function Sidebar({
         aria-label="Close menu"
         className="fixed inset-0 z-30 bg-black/50 lg:hidden"
       />
-      <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-white lg:sticky lg:top-0 dark:border-stone-800 dark:bg-stone-950">
-      <div className="bg-gradient-to-b from-coffee to-white dark:from-coffee-deep dark:to-stone-950">
+      <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-48 shrink-0 flex-col border-r border-coffee-dark/40 bg-coffee lg:sticky lg:top-0 dark:border-stone-800 dark:bg-stone-950">
+      <div className="bg-gradient-to-b from-white to-coffee dark:from-coffee-deep dark:to-stone-950">
       <div className="relative flex items-center gap-2 px-4 py-4">
         <Link to="/" aria-label="Home" className="flex shrink-0 items-center">
           <img

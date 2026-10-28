@@ -38,12 +38,7 @@ body {
 }
 
 .home-gradient {
-  background: linear-gradient(
-    to bottom,
-    var(--color-coffee) 0,
-    #ffffff 50vh,
-    #ffffff 50vh
-  );
+  background: #ffffff;
 }
 
 .dark .home-gradient {
