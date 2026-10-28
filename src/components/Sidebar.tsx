@@ -154,7 +154,12 @@ export function Sidebar({
           <img
             src="/logo.png"
             alt="Asset Outlook"
-            className="h-10 w-auto max-w-full object-contain"
+            className="h-10 w-auto max-w-full object-contain dark:hidden"
+          />
+          <img
+            src="/logo-dark.png"
+            alt="Asset Outlook"
+            className="hidden h-10 w-auto max-w-full object-contain dark:block"
           />
         </Link>
         <p className="shrink-0 text-left font-serif text-lg italic leading-tight">

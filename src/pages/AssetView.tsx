@@ -67,7 +67,12 @@ export function AssetView({
             <img
               src="/brand.png"
               alt="Asset Outlook"
-              className="h-[30px] w-auto max-w-full object-contain"
+              className="h-[30px] w-auto max-w-full object-contain dark:hidden"
+            />
+            <img
+              src="/brand-dark.png"
+              alt="Asset Outlook"
+              className="hidden h-[30px] w-auto max-w-full object-contain dark:block"
             />
           </Link>
         }

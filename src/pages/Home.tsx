@@ -23,11 +23,18 @@ export function Home({
       <TitleSpace
         hero
         title={
-          <img
-            src="/brand.png"
-            alt="Asset Outlook"
-            className="h-12 w-auto max-w-[44vw] object-contain md:h-[14vh] md:max-w-full"
-          />
+          <>
+            <img
+              src="/brand.png"
+              alt="Asset Outlook"
+              className="h-12 w-auto max-w-[44vw] object-contain dark:hidden md:h-[14vh] md:max-w-full"
+            />
+            <img
+              src="/brand-dark.png"
+              alt="Asset Outlook"
+              className="hidden h-12 w-auto max-w-[44vw] object-contain dark:block md:h-[14vh] md:max-w-full"
+            />
+          </>
         }
         symbols={symbols}
         pending={pending}
