@@ -133,7 +133,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800"
+          className="sticky top-2 flex h-[42px] w-[25px] shrink-0 -translate-x-[2px] items-center justify-center rounded-md border border-coffee-dark/40 bg-transparent text-ink shadow-sm hover:bg-coffee/40 dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
           aria-label="Open menu"
         >
           <ChevronRightIcon />
@@ -172,7 +172,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 rounded-l-md border border-r-0 border-coffee-dark/40 bg-white px-1 py-3 text-ink shadow-[1px_0_0_0_white,0_1px_2px_0_rgb(0_0_0/0.05)] hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:shadow-none dark:hover:bg-stone-800"
+          className="absolute right-0 top-1/2 flex h-[42px] w-[25px] -translate-y-1/2 items-center justify-center rounded-l-md border border-r-0 border-coffee-dark/40 bg-transparent text-ink shadow-[1px_0_0_0_white,0_1px_2px_0_rgb(0_0_0/0.05)] hover:bg-coffee/40 dark:border-stone-700 dark:text-stone-100 dark:shadow-[1px_0_0_0_var(--color-coffee-deep)] dark:hover:bg-stone-800"
           aria-label="Close menu"
         >
           <ChevronLeftIcon />
