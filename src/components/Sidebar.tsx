@@ -129,14 +129,16 @@ export function Sidebar({
   const [showAll, setShowAll] = useState(false)
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800"
-        aria-label="Open menu"
-      >
-        <ChevronRightIcon />
-      </button>
+      <div className="w-fit shrink-0 self-stretch home-gradient">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="sticky top-2 h-fit shrink-0 self-start rounded-md border border-coffee-dark/40 bg-white p-2 text-ink shadow-sm hover:bg-coffee/40 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800"
+          aria-label="Open menu"
+        >
+          <ChevronRightIcon />
+        </button>
+      </div>
     )
   }
   return (
