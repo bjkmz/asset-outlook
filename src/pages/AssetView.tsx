@@ -212,7 +212,7 @@ export function AssetView({
       </div>
       </main>
       </div>
-      <aside className="hidden min-w-0 md:block">
+      <aside className="hidden min-w-0 self-stretch md:block">
         <div className="sticky top-4 max-h-[calc(100vh-2rem)] w-full overflow-y-auto overscroll-contain rounded-lg bg-white p-4 dark:bg-stone-900">
           <h2 className="sticky top-0 mb-2 bg-white pb-1 text-lg font-bold dark:bg-stone-900">
             METRICS
