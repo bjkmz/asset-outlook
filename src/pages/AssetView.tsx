@@ -56,11 +56,10 @@ export function AssetView({
   }
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-stone-950">
+    <div className="min-h-screen w-full home-gradient">
       <div className="grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,40rem)_minmax(220px,18rem)] md:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,56rem)_minmax(260px,22rem)] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,72rem)_minmax(300px,1fr)]">
       <div aria-hidden="true" className="hidden md:block" />
       <div className="w-full min-w-0">
-      <div className="dark:bg-gradient-to-b dark:from-coffee-deep dark:to-stone-950">
       <TitleSpace
         title={
           <Link to="/" aria-label="Home" className="flex items-center">
@@ -114,7 +113,6 @@ export function AssetView({
         onMissing={onMissing}
       />
       <div aria-hidden="true" className="h-4 md:h-6" />
-      </div>
       <main className="space-y-4 px-4 pb-4 md:px-6 md:pb-6">
       <div className="min-w-0 space-y-4">
       <section className="py-2">
